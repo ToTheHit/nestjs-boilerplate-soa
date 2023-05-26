@@ -1,26 +1,29 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserSchema } from './models/user';
-import { AppService } from './service';
-import AppController from './controller';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
-const ROUTES = [
-    {
-        path: '/',
-        module: ''
-    }
-];
+import { UserSchema } from './models/user';
+import JobsModule from './routes/example/jobs.module';
+import AppRoutingModule from './routes/example/AppRouting.module';
+import AnswerInterceptor from '../lib/Restify/Interceptors/answerInterceptor';
+import RequestInfoInterceptor from '../lib/Restify/Interceptors/requestInfo';
 
 @Module({
     imports: [
         MongooseModule.forRoot('mongodb://127.0.0.1/nest'),
-        MongooseModule.forFeature([{ name: 'User', schema: UserSchema }])
-    ],
-    controllers: [
-        AppController
+        MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+        JobsModule,
+        AppRoutingModule
     ],
     providers: [
-        AppService
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: RequestInfoInterceptor
+        },
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: AnswerInterceptor
+        }
     ]
 })
-export class AppModule {}
+export default class AppModule {}

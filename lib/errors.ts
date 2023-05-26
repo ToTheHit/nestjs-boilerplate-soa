@@ -1,17 +1,14 @@
 // https://github.com/joyent/node-verror
 
 import axios from 'axios';
-// import stacktrace from 'stack-trace';
-
 import { MongoError } from 'mongodb';
 import mongoose from 'mongoose';
 import FormData from 'form-data';
 
+import errorParseStacktrace from './Restify/utils/errorParseStacktrace';
+
 const { Cancel: AxiosCancel } = axios;
 const { Error: MongooseError } = mongoose;
-
-// console.log('!!! stacktrace', stacktrace);
-// const { parse } = stacktrace;
 
 interface IOptions {
   [key: string]: NonNullable<unknown>;
@@ -20,10 +17,7 @@ interface IMisc extends IOptions {
   blockTime?: number | null;
   message?: string | null;
 }
-/**
- *
- * @extends Error
- */
+
 class GenericError extends Error {
     private status: number;
 
@@ -62,8 +56,7 @@ class GenericError extends Error {
     }
 
     async getStack() {
-        return {};
-        // return parse(this);
+        return errorParseStacktrace(this);
     }
 }
 

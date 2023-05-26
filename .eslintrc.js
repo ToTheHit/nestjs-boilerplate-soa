@@ -43,6 +43,7 @@ module.exports = {
     },
   ],
   rules: {
+    'class-methods-use-this': 0,
     'default-param-last': 0,
     "@typescript-eslint/unbound-method": "error",
     '@typescript-eslint/interface-name-prefix': 'off',

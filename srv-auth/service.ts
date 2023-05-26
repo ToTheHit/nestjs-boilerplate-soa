@@ -1,3 +1,5 @@
+import 'source-map-support/register';
+
 import { Injectable } from '@nestjs/common';
 import { Model, HydratedDocument } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';

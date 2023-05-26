@@ -1,5 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
 import mongoose, { Schema, Types } from 'mongoose';
+import { BadRequestException } from '@nestjs/common';
+import { ForbiddenError, NotFoundError } from '../../lib/errors';
 
 const _plugins = new WeakMap();
 const _pluginsConnected = new WeakMap();
@@ -135,6 +137,7 @@ const modelInit = Model => {
     return Model;
 };
 
+// eslint-disable-next-line no-use-before-define
 class MetaData {
     static async emitModelEvent(action, ...args) {
         console.log('emitModelEvent:', action, ...args);
@@ -147,6 +150,16 @@ class MetaData {
                 await result;
             }
         }
+    }
+
+    static is(pluginName) {
+        // @ts-ignore
+        return this.schema.is(pluginName);
+    }
+
+    is(pluginName) {
+        // @ts-ignore
+        return this.constructor.schema.is(pluginName);
     }
 
     // типа хуки. сделал, т.к. не разобрался, можно ли в mongo свои хуки делать
@@ -188,7 +201,9 @@ class SmartySchema extends Schema {
 
     is(plugin): boolean {
         const connectedPlugins = _pluginsConnected.get(this);
-        const pluginName = typeof plugin === 'function' ? plugin.name : plugin;
+        const pluginName = typeof plugin === 'function'
+            ? plugin.name
+            : plugin;
 
         return connectedPlugins.includes(pluginName);
     }
@@ -228,34 +243,30 @@ class SmartySchema extends Schema {
 
     static modelByCollectionName(collectionName, useApiPrefix = false) {
         if (!collectionName) {
-            throw new Error('test #1');
-            // throw new ForbiddenError('collectionName required');
+            throw new ForbiddenError('collectionName required');
         }
 
-        // if (collectionName === 'ws' || collectionName === 'workspaces') {
-        //     return SmartySchema.model('workspace');
-        // }
+        if (collectionName === 'ws' || collectionName === 'workspaces') {
+            return SmartySchema.model('workspace');
+        }
 
         // TODO: переделать на параметр модели
-        const prefixed =
-      useApiPrefix === true &&
-      !(collectionName === 'invites' || collectionName === 'notifications');
+        const prefixed = useApiPrefix === true && !(collectionName === 'invites' || collectionName === 'notifications');
 
-        for (const modelName of [..._models]) {
-            const Model = SmartySchema.model(modelName[0]);
+        for (const modelName of Object.keys(SmartySchema.models)) {
+            const Model = SmartySchema.model(modelName);
+
+            console.log('Model', Model);
             const modelIsCorrect = !prefixed
                 ? Model.collection.name === collectionName
-                : Model.is('PublicInterface') &&
-          collectionName === Model.getPublicName();
+                : Model.is('PublicInterface') && collectionName === Model.getPublicName();
 
             if (modelIsCorrect) {
                 return Model;
             }
         }
-
-        throw new Error(`Model for collection ${collectionName} not found`);
-
-    // throw new NotFoundError(`Model for collection ${collectionName} not found`);
+        // throw new BadRequestException('Something bad happened', { cause: new Error(), description: 'Some error description' });
+        throw new NotFoundError(`Model for collection ${collectionName} not found`);
     }
 
     model(modelName, collectionName) {

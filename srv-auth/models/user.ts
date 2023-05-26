@@ -4,6 +4,7 @@ import PublicObject, {
     IOptions
 } from '../../srv-db/models/plugins/PublicObject';
 import { ACCESS } from '../../srv-db/lib/constants';
+import AccountPlugin from '../../srv-db/models/plugins/AccountPlugin';
 
 class UserClass {}
 
@@ -63,6 +64,7 @@ const PublicObjectOptions: IOptions = {
 };
 
 UserSchema.plugin(PublicObject, PublicObjectOptions);
+UserSchema.plugin(AccountPlugin);
 UserSchema.loadClass(UserClass, false);
 
 export default UserSchema.model('user', 'users');
