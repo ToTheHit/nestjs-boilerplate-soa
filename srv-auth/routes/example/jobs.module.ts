@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import PublicObjectController from '../PublicObject';
 
 import JobController from './job.controller';
 import JobsInterviewsController from './jobsInterviews.controller';
+import PublicObjectController from '../../../lib/Restify/plugins/PublicObject/index';
 
 @Module({
     controllers: [

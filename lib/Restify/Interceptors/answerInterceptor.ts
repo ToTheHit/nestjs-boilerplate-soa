@@ -47,16 +47,18 @@ export default class AnswerInterceptor<T> implements NestInterceptor<T, Response
             status: 200,
             error: null
         };
-        console.log('incoming %j', { method: req.method.toUpperCase(), path: req.originalUrl, requestId: res.responseObject.requestId });
-
-        return next.handle();
+        console.log('incoming %j', {
+            method: req.method.toUpperCase(),
+            path: req.originalUrl,
+            requestId: res.responseObject.requestId
+        });
 
         return next.handle().pipe(
-            map(data => ({
-                data,
-                statusCode: context.switchToHttp().getResponse().statusCode,
-                message: responseMessage
-            }))
+            map(data => {
+                // console.log('>>> AFTER GLOBAL AnswerInterceptor');
+
+                return data;
+            })
         );
     }
 }

@@ -32,7 +32,7 @@ export default ignoreDeletion => {
         constructor(public reflector: Reflector) {}
 
         async intercept(_context: ExecutionContext, next: CallHandler) {
-            console.log('>>>> BEFORE');
+            console.log('>>>> BEFORE GetInstanceInterceptor');
             const req = _context.switchToHttp().getRequest();
             const res = _context.switchToHttp().getResponse();
 
@@ -47,17 +47,14 @@ export default ignoreDeletion => {
 
             const Model = SmartySchema.modelByCollectionName(collectionName, true);
 
-            //
-            // req.currentObject = await (_shortId
-            //     ? Model.getObjectByShortId(req.profile, _shortId, { ignoreDeletion, queryModif })
-            //     : Model.getObject(req.profile, _id, { ignoreDeletion, queryModif }));
-            // console.log('Before...');
-
-            // return next.handle();
+            req.currentObject = await (_shortId
+                ? Model.getObjectByShortId(req.profile, _shortId, { ignoreDeletion, queryModif })
+                : Model.getObject(req.profile, _id, { ignoreDeletion, queryModif }));
 
             return next.handle().pipe(
                 map(data => {
                     res.responseObject.result = data;
+                    // console.log('>>> AFTER  GetInstanceInterceptor');
 
                     return res.responseObject;
                 })

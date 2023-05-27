@@ -63,6 +63,10 @@ export default class RequestInfoInterceptor implements NestInterceptor {
                 : deviceHeader
         };
 
-        return next.handle();
+        return next.handle().pipe(data => {
+            // console.log('>>> AFTER GLOBAL RequestInfoInterceptor');
+
+            return data;
+        });
     }
 }

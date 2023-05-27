@@ -797,7 +797,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
         return instance;
     }
 
-    static async createObject(profile, rawData = {}, baseObject = null) {
+    public static async createObject(profile, rawData = {}, baseObject = null) {
         const instance = new this();
 
         await instance.validateRawData(profile, rawData, 'create', baseObject);
@@ -1015,12 +1015,7 @@ const PublicInterface = (schema: mongoose.Schema, options: IOptions) => {
     schema.loadClass(PublicInterfaceController);
 };
 
-export interface IPublicInterfaceStatic {
-  findObjectByUser: (user: any, _id: any) => Promise<void>;
-  allowedAttachedFilesType: () => Promise<void>;
-  idField: () => Promise<void>;
-}
 export type TPublicInterface = PublicInterfaceObject & PublicInterfaceController;
-export { PublicInterfaceObject };
+export { PublicInterfaceObject, PublicInterfaceController };
 
 export default PublicInterface;

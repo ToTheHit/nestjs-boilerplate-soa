@@ -5,6 +5,9 @@ import PublicObject, {
 } from '../../srv-db/models/plugins/PublicObject';
 import { ACCESS } from '../../srv-db/lib/constants';
 import AccountPlugin from '../../srv-db/models/plugins/AccountPlugin';
+import ProfileWithToken from '../../srv-db/models/ProfileWithToken';
+import WithEmail from '../../srv-db/models/plugins/WithEmail';
+import ProfileWithAccess from '../../srv-db/models/plugins/ProfileWithAccess';
 
 class UserClass {}
 
@@ -63,8 +66,17 @@ const PublicObjectOptions: IOptions = {
     defaultSortField: '_createdOn'
 };
 
+UserSchema.plugin(ProfileWithAccess);
+UserSchema.plugin(WithEmail);
+
+UserSchema.plugin(ProfileWithToken, {
+    requestQuotaInterval: 900,
+    requestQuotaNumber: 1000
+});
+
 UserSchema.plugin(PublicObject, PublicObjectOptions);
 UserSchema.plugin(AccountPlugin);
+
 UserSchema.loadClass(UserClass, false);
 
 export default UserSchema.model('user', 'users');
