@@ -769,12 +769,22 @@ class PublicInterfaceController extends PublicInterfaceObject {
     static async saveInstanceLowLevel(profile, dataCleared, instance, options = {}) {
         const self = this as unknown as TSmartySchemaStatic;
 
+        console.log('>>>> saveInstanceLowLevel #1');
+
         await self.emitModelEvent('instance-pre-save', profile, instance, dataCleared);
+        console.log('>>>> saveInstanceLowLevel #2');
 
         instance.set(dataCleared);
+        if (!instance._id) {
+            instance.set({ _id: new SmartySchema.ObjectId() });
+        }
+        console.log('>>>> saveInstanceLowLevel #3', options);
         await instance.save(options);
 
+        console.log('>>>> saveInstanceLowLevel #4');
         await self.emitModelEvent('instance-post-save', profile, instance, dataCleared);
+
+        console.log('>>>> saveInstanceLowLevel #5');
 
         return instance;
     }
@@ -787,8 +797,10 @@ class PublicInterfaceController extends PublicInterfaceObject {
         const self = this as unknown as TSmartySchemaStatic;
 
         await self.emitModelEvent('instance-pre-create', profile, instance, baseObject, rawData);
+        console.log('>>>> #4');
 
         await this.saveInstance(profile, rawData, instance);
+        console.log('>>>> #5');
 
         await self.emitModelEvent('instance-post-create', profile, instance, baseObject, rawData);
 
@@ -798,9 +810,13 @@ class PublicInterfaceController extends PublicInterfaceObject {
     }
 
     public static async createObject(profile, rawData = {}, baseObject = null) {
+        console.log('>>>> #1');
         const instance = new this();
 
+        console.log('>>>> #2');
+
         await instance.validateRawData(profile, rawData, 'create', baseObject);
+        console.log('>>>> #3');
 
         return this.createObjectLowLevel(profile, instance, rawData, baseObject);
     }
@@ -906,10 +922,19 @@ class PublicInterfaceController extends PublicInterfaceObject {
         await self.emitModelEvent('instance-pre-validate', profile, this, request, method, clearedData);
 
         try {
-            // TODO: ? Не уверен, что сделал нужное приведение типов
             await (this.constructor as unknown as SmartyDocument).validate(clearedData, Object.keys(clearedData));
-        } catch (errors) {
-            throw new ValidationError('invalid incoming data', errors);
+        } catch ({ errors }) {
+            const misc = {};
+
+            for (const field of Object.keys(errors)) {
+                const { [field]: info } = errors;
+
+                const errorData = info.properties || info;
+
+                Object.assign(misc, { [field]: errorData.message });
+            }
+
+            throw new ValidationError('invalid incoming data', misc);
         }
 
         await self.emitModelEvent('instance-validate', profile, this, request, method, clearedData);

@@ -91,6 +91,10 @@ class SmartyObjectClass extends mongoose.Model {
         return this.getAffectedFields().includes(field);
     }
 
+    model() {
+        return this.constructor;
+    }
+
     async updateField<T extends SmartyObjectClass>(idsList, profile, action, field, custom = {}, sendDbca = true) {
         if (idsList.length > 0) {
             const fields = Array.isArray(field) ? field : [field];

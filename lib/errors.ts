@@ -5,6 +5,8 @@ import { MongoError } from 'mongodb';
 import mongoose from 'mongoose';
 import FormData from 'form-data';
 
+import { BadRequestException } from '@nestjs/common';
+import { HttpException } from '@nestjs/common/exceptions/http.exception';
 import errorParseStacktrace from './Restify/utils/errorParseStacktrace';
 
 const { Cancel: AxiosCancel } = axios;
@@ -247,10 +249,22 @@ export function errorParse(error) {
         err = new ExternalRequestTimeoutError(err, 408);
     }
 
+    if (error instanceof HttpException) {
+        // TODO: реализовать проверку на прочие типы ошибок от NestJS
+        if (error instanceof BadRequestException) {
+            // @ts-ignore
+            err = new ValidationError('can not validate fields', { reason: error.getResponse().message });
+        } else {
+            err = error;
+        }
+        err.stack = error.stack;
+
+        return err;
+    }
     if (!(error instanceof GenericError)) {
         if (error instanceof MongoError || error instanceof MongooseError) {
             if (error instanceof MongooseError.ValidationError || error instanceof MongooseError.CastError) {
-                err = new ValidationError(error.message, (error as mongoose.Error.ValidationError).errors);
+                err = new ValidationError(error.message, (<mongoose.Error.ValidationError>error).errors);
             } else if (error instanceof MongooseError.DocumentNotFoundError) {
                 err = new NotFoundError(error.message, { type: error.name });
             } else {
@@ -260,12 +274,12 @@ export function errorParse(error) {
             // TODO: реализовать проверку на прочие типы ошибок для mongoose
         } else if (
             error instanceof EvalError ||
-      error instanceof RangeError ||
-      error instanceof ReferenceError ||
-      error instanceof SyntaxError ||
-      error instanceof TypeError ||
-      error instanceof URIError ||
-      error instanceof Error
+            error instanceof RangeError ||
+            error instanceof ReferenceError ||
+            error instanceof SyntaxError ||
+            error instanceof TypeError ||
+            error instanceof URIError ||
+            error instanceof Error
         ) {
             err = new ServerError(error.message, { type: error.name });
         }

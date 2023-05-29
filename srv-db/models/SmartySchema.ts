@@ -140,7 +140,7 @@ const modelInit = Model => {
 // eslint-disable-next-line no-use-before-define
 class MetaData {
     static async emitModelEvent(action, ...args) {
-        console.log('emitModelEvent:', action, ...args);
+        // console.log('emitModelEvent:', action, ...args);
 
         return;
         for (const handler of this.getEventsHandlers(action)) {
@@ -160,6 +160,14 @@ class MetaData {
     is(pluginName) {
         // @ts-ignore
         return this.constructor.schema.is(pluginName);
+    }
+
+    isNewObject(value = null) {
+        if (typeof value === 'boolean') {
+            this[newObject] = value;
+        }
+
+        return typeof this[newObject] === 'boolean' ? this[newObject] : true;
     }
 
     // типа хуки. сделал, т.к. не разобрался, можно ли в mongo свои хуки делать
@@ -185,6 +193,8 @@ class SmartySchema extends Schema {
         this.set('toJSON', { getters: true, virtuals: true });
 
         this.loadClass(MetaData, false);
+        this.statics.incomeDataModifiers = this.incomeDataModifiers.bind(this);
+
         this.Model = null;
 
         this.post('init', doc => doc.isNewObject(false));
@@ -226,8 +236,6 @@ class SmartySchema extends Schema {
     }
 
     static model(modelName) {
-        console.log('###', ..._models);
-        console.log('!!!', modelName);
         const Model = _models.get(modelName);
 
         if (!Model) {
@@ -277,16 +285,8 @@ class SmartySchema extends Schema {
         return modelInit.call(this, Model);
     }
 
-    // TODO: Разобраться с этими модифаерами
     incomeDataModifiers(action) {
-    // TODO: move to controller
-        const idm = _dataModif.get(this);
-
-        return idm[action] || [];
-    }
-
-    static incomeDataModifiers(action) {
-    // TODO: move to controller
+        // TODO: move to controller
         const idm = _dataModif.get(this);
 
         return idm[action] || [];

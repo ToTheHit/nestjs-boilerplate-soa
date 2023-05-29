@@ -3,6 +3,9 @@ import {
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { errorParse } from '../../errors';
+import loggerRaw from '../../logger';
+
+const logger = loggerRaw('AllExceptionsFilter');
 
 @Catch()
 export default class AllExceptionsFilter implements ExceptionFilter {
@@ -23,12 +26,13 @@ export default class AllExceptionsFilter implements ExceptionFilter {
             parsedError.stack = await err.getStack();
         }
 
-        console.error(err, 'error while request processing', { url: req.url, method: req.method });
+        logger.error(err, 'error while request processing', { url: req.url, method: req.method });
 
         if (!res.responseObject) {
             res.responseObject = {};
         }
         Object.assign(res.responseObject, {
+            handle_status: 'failure',
             status,
             error: parsedError
         });

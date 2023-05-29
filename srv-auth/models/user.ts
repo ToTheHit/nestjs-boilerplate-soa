@@ -5,11 +5,86 @@ import PublicObject, {
 } from '../../srv-db/models/plugins/PublicObject';
 import { ACCESS } from '../../srv-db/lib/constants';
 import AccountPlugin from '../../srv-db/models/plugins/AccountPlugin';
-import ProfileWithToken from '../../srv-db/models/ProfileWithToken';
+import ProfileWithToken, { TProfileWithToken } from '../../srv-db/models/ProfileWithToken';
 import WithEmail from '../../srv-db/models/plugins/WithEmail';
 import ProfileWithAccess from '../../srv-db/models/plugins/ProfileWithAccess';
+import emitBgEvent from '../../srv-db/lib/emitBgEvent';
+import SmartyModel from '../../srv-db/models/SmartyModel';
 
-class UserClass {}
+class UserClass extends SmartyModel {
+    async getUser() {
+        return this;
+    }
+
+    async systemEvent(type, data = {}) {
+        await emitBgEvent.sendEvent(type, {
+            time: Date.now(),
+            eventData: data,
+            userMeta: (<TProfileWithToken><unknown> this).getMeta(),
+            _user: this._id
+        }, 'system-events');
+    }
+
+    async delaySystemEvent(type, delay, data = {}) {
+        await emitBgEvent.sendDelayedEvent(
+            this._id,
+            type,
+            {
+                time: Date.now(),
+                eventData: data,
+                userMeta: (<TProfileWithToken><unknown> this).getMeta(),
+                _user: this._id
+            },
+            Date.now() + delay,
+            'system-events'
+        );
+    }
+
+    async clearDelayedSystemEvent(type) {
+        await emitBgEvent.clearDelayedEvent(this._id, type);
+    }
+
+    async makeOnline(connectionId) {
+        const query = {
+            $addToSet: { activeSocketSessions: connectionId },
+            $set: { isOnline: true }
+        };
+
+        const wasOffline = this.isOnline !== true;
+
+        await this.updateOne(query);
+
+        this.set({ isOnline: true });
+
+        return wasOffline;
+    }
+
+    async tryToMakeOffline(connectionId) {
+        await this.updateOne({ $pull: { activeSocketSessions: connectionId } });
+
+        const haveConnections = await this.model().findOne({
+            _id: this._id,
+            activeSocketSessions: { $ne: [] }
+        })
+            .select('_id')
+            .lean();
+
+        const isOffline = haveConnections === null;
+
+        if (isOffline) {
+            await this.updateOne({
+                $set: {
+                    isOnline: false,
+                    _userLastOnlineDate: Date.now()
+                }
+            });
+
+            this.set({ isOnline: false });
+        }
+
+        return isOffline;
+    }
+}
 
 const UserSchema = new SmartySchema(
     {
@@ -22,7 +97,7 @@ const UserSchema = new SmartySchema(
 
         createdAt: Number
     },
-    { id: false }
+    { _id: true, id: false }
 );
 
 const PublicObjectOptions: IOptions = {

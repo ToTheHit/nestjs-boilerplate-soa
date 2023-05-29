@@ -1,9 +1,10 @@
-import { Reflector } from '@nestjs/core';
 import {
     CallHandler, ExecutionContext, Injectable, NestInterceptor
 } from '@nestjs/common';
-import { map, Observable } from 'rxjs';
-import prepareRequestParams from '../utils/prepareRequestParams';
+import { Observable } from 'rxjs';
+import loggerRaw from '../../logger';
+
+const logger = loggerRaw('RequestInfoInterceptor');
 
 const getIp = req => {
     if (req.headers['x-forwarded-for']) {
@@ -22,7 +23,7 @@ export default class RequestInfoInterceptor implements NestInterceptor {
         context: ExecutionContext,
         next: CallHandler
     ): Observable<any> {
-        console.log('>>> BEFORE GLOBAL RequestInfoInterceptor');
+        logger.debug('>>> BEFORE GLOBAL RequestInfoInterceptor');
         const req = context.switchToHttp().getRequest();
 
         const {

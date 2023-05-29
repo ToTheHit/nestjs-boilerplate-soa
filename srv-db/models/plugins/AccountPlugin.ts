@@ -1,5 +1,6 @@
 import { unsubscribeRedirectUrl, needConfirmAccountTime } from 'config';
 
+import crypto from 'crypto';
 import SmartyObject, { TSmartyObject } from './SmartyObject';
 import { AccessDenied, NotAcceptable, ValidationError } from '../../../lib/errors';
 import ProfileHuman from './ProfileHuman';
@@ -10,6 +11,7 @@ import { TProfileWithToken } from '../ProfileWithToken';
 import sha1 from '../../../lib/utils/sha1';
 import emitBgEvent from '../../lib/emitBgEvent';
 import { PublicInterfaceController } from './PublicObject/PublicInterface';
+import { initSessionCookies } from '../../../lib/Restify/lib';
 
 interface ISignUp {
     email: string;
@@ -23,7 +25,7 @@ class Account extends SmartyModel {
         (<TProfileWithToken><unknown> this).updateSalt();
 
         this.set({
-            hashedPassword: this.constructor().encryptPassword(password, this.salt),
+            hashedPassword: this.model().encryptPassword(password, this.salt),
             _passwordUpdatedOn: Date.now()
         });
     }
