@@ -7,7 +7,7 @@ module.exports = {
     muteUnknownFieldsError: true,
     session: {
         cookieKey: 'sid',
-        secret: '11111111c1',
+        secret: 'abcd',
         headerKey: 'Bearer',
         ttl: 1000 * 60 * 60 * 24 * 7
     },

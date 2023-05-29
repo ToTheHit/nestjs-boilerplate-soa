@@ -270,6 +270,7 @@ class PublicInterfaceObject extends mongoose.Model<PublicInterfaceObject> {
                     });
                 });
 
+                // eslint-disable-next-line no-param-reassign
                 delete queryModif.$or;
                 for (let orQuery of accessQuery.$or) {
                     orQuery = Object.assign(orQuery, queryModif);
@@ -360,7 +361,7 @@ class PublicInterfaceObject extends mongoose.Model<PublicInterfaceObject> {
         const constructor = this.constructor as unknown as TSmartySchemaStatic;
 
         // TODO: Понятия не имею сработает ли вариант для pre-info. Нужно будет проверить.
-        await this.Model.emitModelEvent('pre-info', profile);
+        await constructor.emitModelEvent('pre-info', profile);
         await constructor.emitModelEvent('instance-info', profile, answer, this, fieldsToGet);
 
         return Array.isArray(fieldsToGet) && fieldsToGet.length > 0 ? pick(answer, fieldsToGet) : answer;
@@ -769,22 +770,15 @@ class PublicInterfaceController extends PublicInterfaceObject {
     static async saveInstanceLowLevel(profile, dataCleared, instance, options = {}) {
         const self = this as unknown as TSmartySchemaStatic;
 
-        console.log('>>>> saveInstanceLowLevel #1');
-
         await self.emitModelEvent('instance-pre-save', profile, instance, dataCleared);
-        console.log('>>>> saveInstanceLowLevel #2');
 
         instance.set(dataCleared);
         if (!instance._id) {
             instance.set({ _id: new SmartySchema.ObjectId() });
         }
-        console.log('>>>> saveInstanceLowLevel #3', options);
         await instance.save(options);
 
-        console.log('>>>> saveInstanceLowLevel #4');
         await self.emitModelEvent('instance-post-save', profile, instance, dataCleared);
-
-        console.log('>>>> saveInstanceLowLevel #5');
 
         return instance;
     }
@@ -797,10 +791,8 @@ class PublicInterfaceController extends PublicInterfaceObject {
         const self = this as unknown as TSmartySchemaStatic;
 
         await self.emitModelEvent('instance-pre-create', profile, instance, baseObject, rawData);
-        console.log('>>>> #4');
 
         await this.saveInstance(profile, rawData, instance);
-        console.log('>>>> #5');
 
         await self.emitModelEvent('instance-post-create', profile, instance, baseObject, rawData);
 
@@ -810,13 +802,9 @@ class PublicInterfaceController extends PublicInterfaceObject {
     }
 
     public static async createObject(profile, rawData = {}, baseObject = null) {
-        console.log('>>>> #1');
         const instance = new this();
 
-        console.log('>>>> #2');
-
         await instance.validateRawData(profile, rawData, 'create', baseObject);
-        console.log('>>>> #3');
 
         return this.createObjectLowLevel(profile, instance, rawData, baseObject);
     }

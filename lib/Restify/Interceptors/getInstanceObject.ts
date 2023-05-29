@@ -54,7 +54,7 @@ export default ignoreDeletion => {
             return next.handle().pipe(
                 map(data => {
                     res.responseObject.result = data;
-                    console.log('>>> AFTER  GetInstanceInterceptor');
+                    console.log('>>> AFTER  GetInstanceInterceptor', res.responseObject);
 
                     return res.responseObject;
                 })

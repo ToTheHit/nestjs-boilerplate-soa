@@ -7,7 +7,6 @@ import NotFoundExceptionFilter from '../lib/Restify/AllExceptionsFilter/NotFound
 
 async function srv() {
     console.log('>>>> SRV-AUTH INIT');
-    await mongoose.connect('mongodb://127.0.0.1:27017');
     const app = await NestFactory.create(AppModule);
 
     app.useGlobalFilters(new AllExceptionsFilter(app.get(HttpAdapterHost)));

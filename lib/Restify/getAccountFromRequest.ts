@@ -46,12 +46,12 @@ const getAccountFromRequest = async (headers, { headerKey, cookieKey, secret }) 
         if (Model) {
             const account = await Model.findById(id);
 
-            const isSidExists = await SmartySchema.model('device').exists({
-                _user: id,
-                sessionId: sid
-            });
+            // const isSidExists = await SmartySchema.model('device').exists({
+            //     _user: id,
+            //     sessionId: sid
+            // });
 
-            if (account && account.verifyToken(tokenValue) && isSidExists) {
+            if (account && account.verifyToken(tokenValue) /* && isSidExists */) {
                 return { account, sid, fakeId };
             }
         }

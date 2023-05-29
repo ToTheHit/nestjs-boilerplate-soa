@@ -276,7 +276,7 @@ class Account extends SmartyModel {
     }
 
     checkPassword(password) {
-        return this.constructor().encryptPassword(password, this.salt) === this.hashedPassword;
+        return this.model().encryptPassword(password, this.salt) === this.hashedPassword;
     }
 
     async confirmAccount() {
@@ -376,6 +376,7 @@ function AccountPlugin(schema: SmartySchema) {
         if (instance.isNewObject()) {
             const accountsInCRM = await this.countDocuments({ email: rawData.email });
 
+            console.log('>>> accountsInCRM', accountsInCRM);
             if (accountsInCRM > 0) {
                 throw new ValidationError('emailAlreadyRegistered');
             }

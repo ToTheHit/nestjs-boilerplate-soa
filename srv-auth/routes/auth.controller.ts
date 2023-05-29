@@ -3,16 +3,15 @@ import {
     Controller,
     Get,
     Post,
-    Query,
     Req, Res,
     UseInterceptors,
     UsePipes
 } from '@nestjs/common';
 import * as crypto from 'crypto';
+
 import AuthRequestInterceptor from '../../lib/Restify/Interceptors/AuthRequestInterceptor';
 import GetInstanceInfoInterceptor from '../../lib/Restify/Interceptors/GetInstanceInfoInterceptor';
 import { emailRegexp, fullNameRegexp } from '../../srv-db/lib/regexps';
-import SignUpInterceptor from './Interceptors/SignUpInterceptor';
 import User from '../models/user';
 import RequestValidator from '../../lib/Restify/validators/RequestValidator';
 import NoAuthRequestInterceptor from '../../lib/Restify/Interceptors/NoAuthRequestInterceptor';
@@ -36,8 +35,8 @@ export default () => {
             {
                 email: {
                     type: String,
-                    required: true
-                    // match: emailRegexp
+                    required: true,
+                    match: emailRegexp
                 },
                 password: {
                     type: String,
@@ -52,7 +51,7 @@ export default () => {
                 }
             }
         ))
-        async signUpHandler(@Req() req, @Res() res, @Body() body) {
+        async signUpHandler(@Req() req, @Res({ passthrough: true }) res, @Body() body) {
             req.user = await User.signUpLocal(body, req.requestInfo);
             req.profile = req.user;
             req.sessionId = crypto.randomUUID();

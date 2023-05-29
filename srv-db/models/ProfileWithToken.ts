@@ -12,7 +12,7 @@ class ProfileWithTokenClass extends SmartyModel {
         return token.sign({
             sid,
             id: `${this._id}`,
-            t: this.constructor().modelName,
+            t: this.model().modelName,
             ...misc
         }, this.getSecret(), ttl);
     }

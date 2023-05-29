@@ -1,10 +1,11 @@
 import { MongooseModule } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
 
 import loggerRaw from '../../lib/logger';
 
 const logger = loggerRaw('MongooseModule');
 
-export default (models: any) => {
+export default (uri: string, models: any) => {
     const data = [MongooseModule.forRootAsync({
         useFactory: async () => {
             return {
@@ -22,9 +23,11 @@ export default (models: any) => {
                         logger.error(error);
                     });
 
+                    mongoose.connect(uri);
+
                     return connection;
                 },
-                uri: 'mongodb://127.0.0.1:27017/nestjs'
+                uri
             };
         }
     })];
@@ -35,60 +38,3 @@ export default (models: any) => {
 
     return data;
 };
-
-// MongooseModule.forRootAsync({
-//     useFactory: async () => ({
-//         uri: 'mongodb://127.0.0.1:27017/nestjs',
-//         autoIndex: false,
-//         noDelay: true,
-//         connectTimeoutMS: 3000,
-//         keepAlive: true,
-//         keepAliveInitialDelay: 300000,
-//         connectionFactory: connection => {
-//             console.log('!!!!!!');
-//             connection.on('connected', () => {
-//                 console.log('is connected');
-//             });
-//             connection.on('disconnected', () => {
-//                 console.log('DB disconnected');
-//             });
-//             connection.on('error', error => {
-//                 console.log('DB connection failed! for error: ', error);
-//             });
-//
-//             return connection;
-//         },
-//         connectionErrorFactory: error => {
-//             console.log('MONGOOSE ERROR', error);
-//
-//             return error;
-//         }
-//     })
-// }),
-
-// MongooseModule.forRoot('mongodb://127.0.0.1:27017', {
-//     autoIndex: false,
-//     noDelay: true,
-//     connectTimeoutMS: 3000,
-//     keepAlive: true,
-//     keepAliveInitialDelay: 300000,
-//     connectionFactory: connection => {
-//         console.log('!!!!!!');
-//         connection.on('connected', () => {
-//             console.log('is connected');
-//         });
-//         connection.on('disconnected', () => {
-//             console.log('DB disconnected');
-//         });
-//         connection.on('error', error => {
-//             console.log('DB connection failed! for error: ', error);
-//         });
-//
-//         return connection;
-//     },
-//     connectionErrorFactory: error => {
-//         console.log('MONGOOSE ERROR', error);
-//
-//         return error;
-//     }
-// }),

@@ -9,7 +9,7 @@ import MongoDB from '../srv-db/db/MongoDB';
 
 @Module({
     imports: [
-        ...MongoDB([{ name: 'User', schema: UserSchema }]),
+        ...MongoDB('mongodb://127.0.0.1:27017/nestjs', [{ name: 'User', schema: UserSchema }]),
         AuthModule,
         AuthRoutingModule
         // JobsModule,

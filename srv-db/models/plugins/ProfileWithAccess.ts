@@ -18,19 +18,19 @@ const getAccessRights = memo(getAccessRightsFn, 'profile getAccessRights');
 
 class ProfileWithAccessClass extends SmartyModel {
     async checkAccessRights(instance, method, throwError = true) {
-        if (typeof this.constructor().schema[defaults].checkAccessRights === 'function') {
-            return this.constructor().schema[defaults].checkAccessRights.call(this, instance, method, throwError);
+        if (typeof this.model().schema[defaults].checkAccessRights === 'function') {
+            return this.model().schema[defaults].checkAccessRights.call(this, instance, method, throwError);
         }
 
         const accessResult = await instance.checkAccessToMethod(this, method);
 
         if (!accessResult && throwError === true) {
-            const modelPublicName = instance.constructor().getPublicName();
+            const modelPublicName = instance.model().getPublicName();
 
             throw new AccessDenied(`method ${method} denied for this instance of ${modelPublicName}`, {
                 _objectId: instance._id,
                 rightsWelder: this._id,
-                rightsWelderType: this.constructor().getPublicName()
+                rightsWelderType: this.model().getPublicName()
             });
         }
 

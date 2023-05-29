@@ -2,6 +2,7 @@
 import mongoose, { Schema, Types } from 'mongoose';
 import { BadRequestException } from '@nestjs/common';
 import { ForbiddenError, NotFoundError } from '../../lib/errors';
+import SmartyDocument from './SmartyDocument';
 
 const _plugins = new WeakMap();
 const _pluginsConnected = new WeakMap();
@@ -140,10 +141,8 @@ const modelInit = Model => {
 // eslint-disable-next-line no-use-before-define
 class MetaData {
     static async emitModelEvent(action, ...args) {
-        // console.log('emitModelEvent:', action, ...args);
-
-        return;
-        for (const handler of this.getEventsHandlers(action)) {
+        // @ts-ignore
+        for (const handler of this.schema.getEventsHandlers(action)) {
             const result = handler.call(this, ...args);
 
             if (result instanceof Promise) {
@@ -168,17 +167,6 @@ class MetaData {
         }
 
         return typeof this[newObject] === 'boolean' ? this[newObject] : true;
-    }
-
-    // типа хуки. сделал, т.к. не разобрался, можно ли в mongo свои хуки делать
-    private static getEventsHandlers(action) {
-        console.log('getEventsHandlers', this, action);
-
-        const eventsHandlers = _events.get(this);
-
-        console.log('>>> eventsHandlers', eventsHandlers);
-
-        return eventsHandlers[action] || [];
     }
 }
 
@@ -264,7 +252,6 @@ class SmartySchema extends Schema {
         for (const modelName of Object.keys(SmartySchema.models)) {
             const Model = SmartySchema.model(modelName);
 
-            console.log('Model', Model);
             const modelIsCorrect = !prefixed
                 ? Model.collection.name === collectionName
                 : Model.is('PublicInterface') && collectionName === Model.getPublicName();
@@ -311,6 +298,12 @@ class SmartySchema extends Schema {
 
     describe(calculated = true, noRef = false) {
         return describer.run(this, calculated, noRef);
+    }
+
+    getEventsHandlers(action) {
+        const eventsHandlers = _events.get(this);
+
+        return eventsHandlers[action] || [];
     }
 
     onModelEvent(action, handler) {

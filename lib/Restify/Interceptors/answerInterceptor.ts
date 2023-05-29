@@ -60,7 +60,7 @@ export default class AnswerInterceptor<T> implements NestInterceptor<T, Response
 
         return next.handle().pipe(
             map(data => {
-                // console.log('>>> AFTER GLOBAL AnswerInterceptor');
+                console.log('>>> AFTER GLOBAL AnswerInterceptor');
 
                 return data;
             })

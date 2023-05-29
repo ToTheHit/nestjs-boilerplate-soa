@@ -44,7 +44,7 @@ const WithEmail = (schema: SmartySchema, options: IOptions = {}) => {
 
             const promises = [];
 
-            promises.push(this.constructor().updateOne({ _id: this._id }, { $set: { email } }));
+            promises.push(this.model().updateOne({ _id: this._id }, { $set: { email } }));
             promises.push(employee.updateObjectLowLevel(employee, {}, { email }));
 
             await Promise.all(promises);

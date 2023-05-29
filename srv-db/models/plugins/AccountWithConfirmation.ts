@@ -54,8 +54,8 @@ class AccountWithConfirmationClass extends SmartyModel {
                 oldStatus,
                 newStatus: emailConfirmedStatus
             }),
-            (<TSmartySchemaStatic> this.constructor()).emitModelEvent('instance-post-confirm-email', this),
-            this.constructor().dbcaUpdate(this._id, ['email', 'emailConfirmedStatus'])
+            (<TSmartySchemaStatic> this.model()).emitModelEvent('instance-post-confirm-email', this),
+            this.model().dbcaUpdate(this._id, ['email', 'emailConfirmedStatus'])
         ];
 
         if (sendNotif) {
@@ -65,7 +65,7 @@ class AccountWithConfirmationClass extends SmartyModel {
     }
 
     async checkEmailConfirmationAllowed(email) {
-        const emailDupCount = await (<SmartyModel> this.constructor())
+        const emailDupCount = await (<SmartyModel> this.model())
             .countDocuments({ email, emailConfirmedStatus: CONFIRMED });
 
         if (emailDupCount > 0) {
@@ -76,7 +76,7 @@ class AccountWithConfirmationClass extends SmartyModel {
     }
 
     checkEmailChangeAllowed(email) {
-        if (this.emailConfirmedStatus === this.constructor().CONFIRM_TYPES.CONFIRMED && this.email === email) {
+        if (this.emailConfirmedStatus === this.model().CONFIRM_TYPES.CONFIRMED && this.email === email) {
             throw new ValidationError('emailConfirmed');
         }
     }
@@ -87,7 +87,7 @@ class AccountWithConfirmationClass extends SmartyModel {
         });
 
         await this.save();
-        await this.constructor().dbcaUpdate(this._id, ['lastEmail']);
+        await this.model().dbcaUpdate(this._id, ['lastEmail']);
     }
 }
 function AccountWithConfirmation(schema: SmartySchema) {
