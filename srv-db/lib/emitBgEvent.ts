@@ -1,8 +1,9 @@
+import mq from '../db/RabbitMQ/MQHandler';
+
 const queueTimer = 'timer';
 
-// FIXME: return Promise<void>
 const sender = (event, content, queue, meta = {}) => {
-    // return mq.publish(queue, event, content, meta);
+    return mq.publish(queue, event, content, meta);
 };
 
 const stat = async (event, content = {}) => sender(event, { time: Date.now(), ...content }, 'statistic');

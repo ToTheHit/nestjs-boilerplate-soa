@@ -1,15 +1,15 @@
 import { Document } from 'mongoose';
-import SmartySchema from '../../srv-db/models/SmartySchema';
+import SmartySchema from '../../../srv-db/models/SmartySchema';
 import PublicObject, {
     IOptions
-} from '../../srv-db/models/plugins/PublicObject';
-import { ACCESS } from '../../srv-db/lib/constants';
-import AccountPlugin from '../../srv-db/models/plugins/AccountPlugin';
-import ProfileWithToken, { TProfileWithToken } from '../../srv-db/models/ProfileWithToken';
-import WithEmail from '../../srv-db/models/plugins/WithEmail';
-import ProfileWithAccess from '../../srv-db/models/plugins/ProfileWithAccess';
-import emitBgEvent from '../../srv-db/lib/emitBgEvent';
-import SmartyModel from '../../srv-db/models/SmartyModel';
+} from '../../../srv-db/models/plugins/PublicObject';
+import { ACCESS } from '../../../srv-db/lib/constants';
+import AccountPlugin from '../../../srv-db/models/plugins/AccountPlugin';
+import ProfileWithToken, { TProfileWithToken } from '../../../srv-db/models/ProfileWithToken';
+import WithEmail from '../../../srv-db/models/plugins/WithEmail';
+import ProfileWithAccess from '../../../srv-db/models/plugins/ProfileWithAccess';
+import emitBgEvent from '../../../srv-db/lib/emitBgEvent';
+import SmartyModel from '../../../srv-db/models/SmartyModel';
 
 class UserClass extends SmartyModel {
     async getUser() {

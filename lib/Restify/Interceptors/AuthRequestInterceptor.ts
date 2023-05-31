@@ -6,11 +6,14 @@ import { sessionInCookies } from '../handlers/constants';
 import * as cookies from '../../utils/cookie';
 import validateAccount from '../validateAccount';
 import { initSessionCookies } from '../lib';
+import emitBgEvent from '../../../srv-db/lib/emitBgEvent';
 
 export default (confirmedEmailOnly = true, ignoreBlock = false) => {
     @Injectable()
     class AuthRequestInterceptor<T> extends RequestWithTokenInterceptor<T> {
         async intercept(_context: ExecutionContext, next: CallHandler) {
+            // const contextType = _context.getType<'http' | 'rmq'>();
+
             await super.intercept(_context, next);
             this.profiles.add('user');
 
@@ -19,12 +22,11 @@ export default (confirmedEmailOnly = true, ignoreBlock = false) => {
 
             req.dropSession = async reason => {
                 if (req.sessionId && req.user && sessionInCookies.get(req.user.constructor)) {
-                    // FIXME: !!! RABBIT
-                    // await mq.publish('auth-events', 'dropSession', {
-                    //     sessionId: req.sessionId,
-                    //     _user: req.user._id,
-                    //     reason
-                    // });
+                    await emitBgEvent.sendEvent('dropSession', {
+                        sessionId: req.sessionId,
+                        _user: req.user._id,
+                        reason
+                    }, 'auth-events');
                 }
 
                 res.append('Set-Cookie', cookies.clear(options.cookieKey));

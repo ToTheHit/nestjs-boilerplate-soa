@@ -1,8 +1,23 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "srv-auth",
+  "sourceRoot": "apps",
+  "monorepo": true,
   "compilerOptions": {
     "deleteOutDir": true
+  },
+  "projects": {
+    "auth": {
+      "type": "application",
+      "root": "apps/srv-auth",
+      "entryFile": "service",
+      "sourceRoot": "apps/srv-auth"
+    },
+    "auth-worker": {
+      "type": "application",
+      "root": "apps/srv-auth",
+      "entryFile": "worker",
+      "sourceRoot": "apps/srv-auth"
+    }
   }
 }
