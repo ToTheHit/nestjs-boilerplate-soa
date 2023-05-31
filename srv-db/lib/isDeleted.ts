@@ -1,6 +1,5 @@
-export default (Model, ignoreDeletion = false) =>
-  Model.is('Deletable')
+export default (Model, ignoreDeletion = false) => (Model.is('Deletable')
     ? {
-        isDeleted: ignoreDeletion ? 'ignore' : false,
-      }
-    : {};
+        isDeleted: ignoreDeletion ? 'ignore' : false
+    }
+    : {});

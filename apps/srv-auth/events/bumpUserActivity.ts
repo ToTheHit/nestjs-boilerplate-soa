@@ -1,4 +1,5 @@
 import User from '../models/user';
+import Device from '../models/device';
 
 const bumpUserActivity = async ({ data }) => {
     const {
@@ -14,6 +15,7 @@ const bumpUserActivity = async ({ data }) => {
 
     if (user) {
         await User.updateOne({ _id: user._id }, { $set: { lastActivityDate: Date.now() } });
+        await Device.addDevice(user, sessionId, platform, deviceName, registration);
     }
 };
 

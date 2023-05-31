@@ -2,6 +2,35 @@ import SmartySchema from '../SmartySchema';
 import SmartyModel from '../SmartyModel';
 import { emailRegexp } from '../../lib/regexps';
 
+const defaults = Symbol('defaults');
+
+class EmailController extends SmartyModel {
+    static get needConfirmationEmail() {
+        return this.schema[defaults].needConfirmation;
+    }
+
+    // async setEmailForConfirm(email) {
+    //     this.set({
+    //         lastEmail: email
+    //     });
+    //
+    //     await this.save();
+    //     await this.constructor.dbcaUpdate(this._id, ['lastEmail']);
+    // }
+
+    async confirmEmail(email) {
+        const Employee = SmartySchema.model('employee');
+        const employee = await Employee.findOne({ _user: this._id });
+
+        const promises = [];
+
+        promises.push(this.model().updateOne({ _id: this._id }, { $set: { email } }));
+        promises.push(employee.updateObjectLowLevel(employee, {}, { email }));
+
+        await Promise.all(promises);
+    }
+}
+
 interface IOptions {
     validateEmail?: boolean;
     needConfirmation?: boolean;
@@ -24,33 +53,9 @@ const WithEmail = (schema: SmartySchema, options: IOptions = {}) => {
         haveAdditional = true
     } = options;
 
-    class EmailController extends SmartyModel {
-        static get needConfirmationEmail() {
-            return needConfirmation;
-        }
-
-        // async setEmailForConfirm(email) {
-        //     this.set({
-        //         lastEmail: email
-        //     });
-        //
-        //     await this.save();
-        //     await this.constructor.dbcaUpdate(this._id, ['lastEmail']);
-        // }
-
-        async confirmEmail(email) {
-            const Employee = SmartySchema.model('employee');
-            const employee = await Employee.findOne({ _user: this._id });
-
-            const promises = [];
-
-            promises.push(this.model().updateOne({ _id: this._id }, { $set: { email } }));
-            promises.push(employee.updateObjectLowLevel(employee, {}, { email }));
-
-            await Promise.all(promises);
-        }
-    }
-
+    schema[defaults] = {
+        needConfirmation
+    };
     const emailParam = {
         type: String,
         description: 'Электронный адрес',
@@ -99,3 +104,5 @@ const WithEmail = (schema: SmartySchema, options: IOptions = {}) => {
 };
 
 export default WithEmail;
+
+export type TWithEmail = EmailController;

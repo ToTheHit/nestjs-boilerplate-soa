@@ -3,9 +3,9 @@ import { unsubscribeRedirectUrl, needConfirmAccountTime } from 'config';
 import crypto from 'crypto';
 import SmartyObject, { TSmartyObject } from './SmartyObject';
 import { AccessDenied, NotAcceptable, ValidationError } from '../../../lib/errors';
-import ProfileHuman from './ProfileHuman';
+import ProfileHuman, { TProfileHuman } from './ProfileHuman';
 import SmartySchema from '../SmartySchema';
-import AccountWithConfirmation from './AccountWithConfirmation';
+import AccountWithConfirmation, { TAccountWithConfirmation } from './AccountWithConfirmation';
 import SmartyModel from '../SmartyModel';
 import { TProfileWithToken } from '../ProfileWithToken';
 import sha1 from '../../../lib/utils/sha1';
@@ -387,3 +387,5 @@ function AccountPlugin(schema: SmartySchema) {
 }
 
 export default AccountPlugin;
+
+export type TAccountPlugin = Account & AccountController & TProfileHuman & TAccountWithConfirmation;

@@ -1,15 +1,15 @@
-import { Document } from 'mongoose';
 import SmartySchema from '../../../srv-db/models/SmartySchema';
 import PublicObject, {
-    IOptions
+    IOptions, TPublicObject
 } from '../../../srv-db/models/plugins/PublicObject';
 import { ACCESS } from '../../../srv-db/lib/constants';
-import AccountPlugin from '../../../srv-db/models/plugins/AccountPlugin';
+import AccountPlugin, { TAccountPlugin } from '../../../srv-db/models/plugins/AccountPlugin';
 import ProfileWithToken, { TProfileWithToken } from '../../../srv-db/models/ProfileWithToken';
-import WithEmail from '../../../srv-db/models/plugins/WithEmail';
-import ProfileWithAccess from '../../../srv-db/models/plugins/ProfileWithAccess';
+import WithEmail, { TWithEmail } from '../../../srv-db/models/plugins/WithEmail';
+import ProfileWithAccess, { TProfileWithAccess } from '../../../srv-db/models/plugins/ProfileWithAccess';
 import emitBgEvent from '../../../srv-db/lib/emitBgEvent';
 import SmartyModel from '../../../srv-db/models/SmartyModel';
+import SmartyDocument from '../../../srv-db/models/SmartyDocument';
 
 class UserClass extends SmartyModel {
     async getUser() {
@@ -157,4 +157,10 @@ UserSchema.loadClass(UserClass, false);
 export default UserSchema.model('user', 'users');
 
 export { UserSchema };
-export type UserDocument = Document;
+export type TUser = UserClass &
+    TProfileWithAccess &
+    TWithEmail &
+    TProfileWithToken &
+    TPublicObject &
+    TAccountPlugin;
+export type TUserDocument = TUser & SmartyDocument;

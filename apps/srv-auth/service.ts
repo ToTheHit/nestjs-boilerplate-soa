@@ -6,14 +6,13 @@ import { redisInit } from '../../srv-db/db/Redis/Redis';
 import initGlobalFilters from '../../lib/Restify/AllExceptionsFilter';
 
 async function srv() {
+    await redisInit();
+
     const app = await NestFactory.create(AppModule(true));
 
     initGlobalFilters(app);
 
-    await Promise.all([
-        RabbitMQInit(),
-        redisInit()
-    ]);
+    await RabbitMQInit();
 
     await app.listen(3001);
 }

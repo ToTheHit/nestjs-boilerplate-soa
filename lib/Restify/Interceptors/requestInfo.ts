@@ -2,7 +2,11 @@ import {
     CallHandler, ExecutionContext, Injectable, NestInterceptor
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
+import { session as options } from 'config';
+
 import loggerRaw from '../../logger';
+import { getRawDataFromRequest } from '../getAccountFromRequest';
+import SmartySchema from '../../../srv-db/models/SmartySchema';
 
 const logger = loggerRaw('RequestInfoInterceptor');
 
@@ -17,12 +21,36 @@ const getIp = req => {
     return req.ip;
 };
 
+const buildPlatformName = deviceName => {
+    if (deviceName) {
+        const name = deviceName.toLowerCase();
+
+        if (name.indexOf('android') >= 0) {
+            return 'android';
+        }
+
+        if (name.indexOf('ios') >= 0) {
+            return 'ios';
+        }
+
+        if (name.indexOf('windows') >= 0) {
+            return 'windows';
+        }
+
+        if (name.indexOf('test') >= 0) {
+            return 'test';
+        }
+    }
+
+    return 'web';
+};
+
 @Injectable()
 export default class RequestInfoInterceptor implements NestInterceptor {
-    intercept(
+    async intercept(
         context: ExecutionContext,
         next: CallHandler
-    ): Observable<any> {
+    ) {
         logger.debug('>>> BEFORE GLOBAL RequestInfoInterceptor');
         const req = context.switchToHttp().getRequest();
 
@@ -34,25 +62,25 @@ export default class RequestInfoInterceptor implements NestInterceptor {
             'user-agent': uaHeader
         } = req.headers;
 
-        const platform = 'web';
-        const deviceName = 'test';
+        let platform;
+        let deviceName;
 
-        // const data = getRawDataFromRequest(req.headers, options, true);
-        //
-        // if (data && data.sid) {
-        //   const Device = SmartySchema.model('device');
-        //   const deviceInfo = await Device.findOne({ sessionId: data.sid }).select('platform deviceName');
-        //
-        //   if (deviceInfo) {
-        //     deviceName = deviceInfo.deviceName;
-        //     platform = deviceInfo.platform;
-        //   }
-        // }
-        //
-        // if (!deviceName || !platform) {
-        //   deviceName = deviceHeader || (uaHeader ? 'web' : null);
-        //   platform = buildPlatformName(deviceName);
-        // }
+        const data = getRawDataFromRequest(req.headers, options);
+
+        if (data && data.sid) {
+            const Device = SmartySchema.model('device');
+            const deviceInfo = await Device.findOne({ sessionId: data.sid }).select('platform deviceName');
+
+            if (deviceInfo) {
+                deviceName = deviceInfo.deviceName;
+                platform = deviceInfo.platform;
+            }
+        }
+
+        if (!deviceName || !platform) {
+            deviceName = deviceHeader || (uaHeader ? 'web' : null);
+            platform = buildPlatformName(deviceName);
+        }
         req.requestInfo = {
             requestCountry,
             city,

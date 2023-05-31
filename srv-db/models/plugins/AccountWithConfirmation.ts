@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import SmartySchema, { TSmartySchemaStatic } from '../SmartySchema';
 import { NotAcceptable, ValidationError } from '../../../lib/errors';
 import emitBgEvent from '../../lib/emitBgEvent';
@@ -116,3 +115,4 @@ function AccountWithConfirmation(schema: SmartySchema) {
 }
 
 export default AccountWithConfirmation;
+export type TAccountWithConfirmation = AccountWithConfirmationClass;

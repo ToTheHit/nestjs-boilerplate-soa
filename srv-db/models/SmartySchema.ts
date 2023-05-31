@@ -176,7 +176,9 @@ class SmartySchema extends Schema {
     private tree: any;
 
     constructor(obj, options = {}) {
-        super(obj, { ...options, minimize: false });
+        super(obj, {
+            ...options, minimize: false, _id: true, id: false
+        });
 
         this.set('toJSON', { getters: true, virtuals: true });
 

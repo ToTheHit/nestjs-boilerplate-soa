@@ -46,12 +46,12 @@ const getAccountFromRequest = async (headers, { headerKey, cookieKey, secret }) 
         if (Model) {
             const account = await Model.findById(id);
 
-            // const isSidExists = await SmartySchema.model('device').exists({
-            //     _user: id,
-            //     sessionId: sid
-            // });
+            const isSidExists = await SmartySchema.model('device').exists({
+                _user: id,
+                sessionId: sid
+            });
 
-            if (account && account.verifyToken(tokenValue) /* && isSidExists */) {
+            if (account && account.verifyToken(tokenValue) && isSidExists) {
                 return { account, sid, fakeId };
             }
         }
@@ -60,8 +60,26 @@ const getAccountFromRequest = async (headers, { headerKey, cookieKey, secret }) 
     return null;
 };
 
+const getRawDataFromRequest = (headers, { headerKey, cookieKey, secret }) => {
+    const tokenFromCookies = getTokenFromCookies(headers, cookieKey, secret);
+    const tokenFromHeaders = getTokenFromHeaders(headers, headerKey);
+
+    if (tokenFromCookies && tokenFromHeaders) {
+        throw new BadRequest('multiple tokens provided');
+    }
+
+    const tokenValue = tokenFromCookies || tokenFromHeaders;
+
+    if (tokenValue) {
+        return extractData(tokenValue);
+    }
+
+    return null;
+};
+
 export {
     getAccountFromRequest,
     getTokenFromHeaders,
-    getTokenFromCookies
+    getTokenFromCookies,
+    getRawDataFromRequest
 };
