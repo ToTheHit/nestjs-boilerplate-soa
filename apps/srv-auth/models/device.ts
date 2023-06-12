@@ -1,9 +1,9 @@
 import SmartyModel from '../../../srv-db/models/SmartyModel';
 import SmartySchema from '../../../srv-db/models/SmartySchema';
-import SmartyObject, { TSmartyObject } from '../../../srv-db/models/plugins/SmartyObject';
+import SmartyObject, { TSmartyObject, TSmartyObjectStatic } from '../../../srv-db/models/plugins/SmartyObject';
 import SmartyDocument from '../../../srv-db/models/SmartyDocument';
 
-class Device extends SmartyModel {
+class DeviceClass extends SmartyModel {
     static async getUserDevices(user, platforms) {
         return this.find({
             _user: user._id,
@@ -124,10 +124,10 @@ const DeviceSchema = new SmartySchema({
 
 DeviceSchema.plugin(SmartyObject);
 
-DeviceSchema.loadClass(Device, false);
+DeviceSchema.loadClass(DeviceClass, false);
 
 export default DeviceSchema.model('device', 'devices');
 
 export { DeviceSchema };
-export type TDevice = Device & TSmartyObject & SmartyDocument;
-export type TDeviceDocument = TDevice & SmartyDocument;
+export type TDevice = DeviceClass & TSmartyObject & SmartyDocument;
+export type TDeviceStatic = typeof DeviceClass & TSmartyObjectStatic;

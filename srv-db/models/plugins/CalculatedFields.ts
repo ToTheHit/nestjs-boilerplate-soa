@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { chunkify } from '../../../lib/utils/fn';
 import { ServerError } from '../../../lib/errors';
 import SmartySchema from '../SmartySchema';
+import SmartyModel from '../SmartyModel';
 
 const fieldsHandler = Symbol('calculating-fields-handlers');
 const fieldsHandlerInner = Symbol('calculating-fields-handlers-inner');
@@ -31,7 +32,7 @@ const calcHandlersExec =
       return promises;
   };
 
-class CalculatedFieldsHandler extends mongoose.Model<CalculatedFieldsHandler> {
+class CalculatedFieldsHandler extends SmartyModel {
     static calculatedFields(returnSchemas = false) {
         if (!returnSchemas) {
             return Array.from(this.schema[fieldsSet]);
@@ -75,7 +76,7 @@ class CalculatedFieldsHandler extends mongoose.Model<CalculatedFieldsHandler> {
    * @returns {Promise<void>}
    */
     async calculatedFieldsGetInstance(profile, merger, fieldsToGet = null) {
-        const constructor = this.constructor as unknown as CalculatedFieldsHandler;
+        const constructor = (<CalculatedFieldsHandler><unknown> this.constructor);
         const handlers = constructor.schema[fieldsHandler].concat(constructor.schema[fieldsHandlerInner]);
         const getter = calcHandlersExec(this, handlers, 'getInstance', profile);
 
@@ -231,3 +232,5 @@ const CalculatedFields = (schema, options: IOptions) => {
 };
 
 export default CalculatedFields;
+export type TCalculatedFields = CalculatedFieldsHandler;
+export type TCalculatedFieldsStatic = typeof CalculatedFieldsHandler;

@@ -17,3 +17,5 @@ function EmployeeRelatedFields(schema, options = {}) {
 }
 
 export default EmployeeRelatedFields;
+export type TEmployeeRelatedFields = EmployeeRelatedFieldsClass;
+export type TEmployeeRelatedFieldsStatic = typeof EmployeeRelatedFieldsClass;

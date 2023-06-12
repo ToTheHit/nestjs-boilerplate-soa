@@ -107,7 +107,7 @@ redisClient.on('ready', async () => {
         redisClient.isReportSended = false;
     }
 
-    logger.info('Connection opened');
+    logger.info('Redis connected');
 });
 
 const redisInit = async () => {

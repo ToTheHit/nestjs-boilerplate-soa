@@ -71,5 +71,5 @@ const ProfileWithAccess = (schema: SmartySchema, options = {}) => {
 };
 
 export default ProfileWithAccess;
-
 export type TProfileWithAccess = ProfileWithAccessClass;
+export type TProfileWithAccessStatic = typeof ProfileWithAccessClass;

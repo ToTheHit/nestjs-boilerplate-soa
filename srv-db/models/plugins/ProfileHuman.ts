@@ -45,3 +45,4 @@ function ProfileHuman(schema: SmartySchema, options = {}) {
 
 export default ProfileHuman;
 export type TProfileHuman = ProfileHumanClass;
+export type TProfileHumanStatic = typeof ProfileHumanClass;

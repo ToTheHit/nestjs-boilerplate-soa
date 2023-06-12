@@ -87,5 +87,6 @@ function ShortId(schema, options: IOptions) {
     schema.onModelEvent('instance-pre-create', bindShortId);
 }
 
-export type TShortId = ShortIdClass;
 export default ShortId;
+export type TShortId = ShortIdClass;
+export type TShortIdStatic = typeof ShortIdClass;

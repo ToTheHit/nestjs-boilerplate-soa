@@ -16,4 +16,5 @@ async function srv() {
 
     await app.listen(3001);
 }
+
 srv();

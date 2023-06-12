@@ -1,12 +1,15 @@
 import SmartySchema from '../../../srv-db/models/SmartySchema';
 import PublicObject, {
-    IOptions, TPublicObject
+    IOptions, TPublicObject, TPublicObjectStatic
 } from '../../../srv-db/models/plugins/PublicObject';
 import { ACCESS } from '../../../srv-db/lib/constants';
-import AccountPlugin, { TAccountPlugin } from '../../../srv-db/models/plugins/AccountPlugin';
-import ProfileWithToken, { TProfileWithToken } from '../../../srv-db/models/ProfileWithToken';
-import WithEmail, { TWithEmail } from '../../../srv-db/models/plugins/WithEmail';
-import ProfileWithAccess, { TProfileWithAccess } from '../../../srv-db/models/plugins/ProfileWithAccess';
+import AccountPlugin, { TAccountPlugin, TAccountPluginStatic } from '../../../srv-db/models/plugins/AccountPlugin';
+import ProfileWithToken, { TProfileWithToken, TProfileWithTokenStatic } from '../../../srv-db/models/ProfileWithToken';
+import WithEmail, { TWithEmail, TWithEmailStatic } from '../../../srv-db/models/plugins/WithEmail';
+import ProfileWithAccess, {
+    TProfileWithAccess,
+    TProfileWithAccessStatic
+} from '../../../srv-db/models/plugins/ProfileWithAccess';
 import emitBgEvent from '../../../srv-db/lib/emitBgEvent';
 import SmartyModel from '../../../srv-db/models/SmartyModel';
 import SmartyDocument from '../../../srv-db/models/SmartyDocument';
@@ -83,6 +86,10 @@ class UserClass extends SmartyModel {
         }
 
         return isOffline;
+    }
+
+    static test(data: string) {
+        return data === 'test';
     }
 }
 
@@ -162,5 +169,11 @@ export type TUser = UserClass &
     TWithEmail &
     TProfileWithToken &
     TPublicObject &
-    TAccountPlugin;
-export type TUserDocument = TUser & SmartyDocument;
+    TAccountPlugin &
+    SmartyDocument;
+export type TUserStatic = typeof UserClass &
+    TProfileWithAccessStatic &
+    TWithEmailStatic &
+    TProfileWithTokenStatic &
+    TPublicObjectStatic &
+    TAccountPluginStatic;

@@ -340,25 +340,7 @@ class SmartySchema extends Schema {
     static ObjectId = ObjectId;
 }
 
-export interface IMetaData {
-  emitModelEvent: (action: string, ...args: any) => Promise<void>;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  getEventsHandlers: (action: string) => Function[];
-}
-interface ISmartySchema extends Schema {
-  model: (modelName: string) => mongoose.Model<any>;
-  modelByCollectionName: (
-    collectionName: string,
-    useApiPrefix: boolean,
-  ) => mongoose.Model<any>;
-  // ObjectId: (id: string) => mongoose.Types.ObjectId;
-  incomeDataModifiers: (action: string) => string[];
-  describe: (calculated: boolean, noRef: boolean) => NonNullable<unknown>;
-}
-
-// SmartySchema.ObjectId = mongoose.Types.ObjectId;
-
-export type TSmartySchemaStatic = IMetaData & ISmartySchema;
+export default SmartySchema;
+export type TSmartySchemaStatic = typeof MetaData & typeof SmartySchema;
 export type TSmartySchema = SmartySchema & MetaData;
 export type TObjectId = ObjectId;
-export default SmartySchema;

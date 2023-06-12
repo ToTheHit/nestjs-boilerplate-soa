@@ -1,5 +1,13 @@
-import PublicInterface, { TPublicInterface, IOptions as IOptionsPublicInterface } from './PublicInterface';
-import CheckAccessRights, { TCheckAccessRights, IOptions as IOptionsCheckAccessRights } from './CheckAccessRights';
+import PublicInterface, {
+    TPublicInterface,
+    IOptions as IOptionsPublicInterface,
+    TPublicInterfaceStatic
+} from './PublicInterface';
+import CheckAccessRights, {
+    TCheckAccessRights,
+    IOptions as IOptionsCheckAccessRights,
+    TCheckAccessRightsStatic
+} from './CheckAccessRights';
 
 export type IOptions = IOptionsPublicInterface & IOptionsCheckAccessRights;
 function PublicObject(schema, options: IOptions) {
@@ -9,3 +17,4 @@ function PublicObject(schema, options: IOptions) {
 
 export default PublicObject;
 export type TPublicObject = TPublicInterface & TCheckAccessRights;
+export type TPublicObjectStatic = TPublicInterfaceStatic & TCheckAccessRightsStatic;

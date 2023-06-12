@@ -163,6 +163,8 @@ class RabbitMQHandler extends EventEmitter {
                         this.isReportSended = false;
                         // await hook('mq connect');
 
+                        logger.info('RabbitMQ connected');
+
                         resolve(true);
                     });
 
@@ -174,6 +176,7 @@ class RabbitMQHandler extends EventEmitter {
                             //     'mq error: connectFailed',
                             //     typeof error === 'object' ? JSON.stringify(error.err) : error
                             // );
+                            logger.error('RabbitMQ connect failed: %s', error);
                             this.isReportSended = true;
                         }
                     });
@@ -183,13 +186,15 @@ class RabbitMQHandler extends EventEmitter {
 
                         if (!this.isReportSended) {
                             // await hook('mq error: disconnect', 'connection closed');
+                            logger.error('RabbitMQ disconnected');
+
                             this.isReportSended = true;
                         }
                     });
                 } catch (error) {
-                    logger.error(error, 'connection error');
-
                     if (!this.isReportSended) {
+                        logger.error('RabbitMQ connection error: %s', error);
+
                         // hook('mq error', typeof error === 'object' ? JSON.stringify(error.err) : error);
                         this.isReportSended = true;
                     }

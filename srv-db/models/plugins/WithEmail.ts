@@ -106,3 +106,4 @@ const WithEmail = (schema: SmartySchema, options: IOptions = {}) => {
 export default WithEmail;
 
 export type TWithEmail = EmailController;
+export type TWithEmailStatic = typeof EmailController;

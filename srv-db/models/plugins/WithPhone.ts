@@ -92,3 +92,5 @@ const WithPhone = (schema: SmartySchema, options: IOptions = {}) => {
 };
 
 export default WithPhone;
+export type TWithPhone = WithPhoneClass;
+export type TWithPhoneStatic = typeof WithPhoneClass;

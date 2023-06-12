@@ -1,14 +1,14 @@
-import mongoose from 'mongoose';
 import memo from '../../../../lib/utils/memo';
 import { AccessDenied } from '../../../../lib/errors';
 import { reduceToObject } from '../../../../lib/utils/fn';
 import { ACCESS } from '../../../lib/constants';
-import SmartySchema from '../../SmartySchema';
+import SmartySchema, { TSmartySchema, TSmartySchemaStatic } from '../../SmartySchema';
 import isDeleted from '../../../lib/isDeleted';
-import { TPublicInterface } from './PublicInterface';
+import { TPublicInterfaceStatic } from './PublicInterface';
 import { TSmartyObject } from '../SmartyObject';
 import { IGetterQuery } from '../../../../lib/interface';
 import EmployeeRelatedFields from '../EmployeeRelatedFields';
+import SmartyModel from '../../SmartyModel';
 
 const defaults = Symbol('defaults');
 
@@ -23,8 +23,7 @@ const accessQueryBuilderFn = async (profile, Model, method, baseObject) => {
 const getProfileRights = memo(getProfileRightsFn, 'Model getProfileRights');
 const accessQueryBuilder = memo(accessQueryBuilderFn, 'Model buildAccessQuery');
 
-// eslint-disable-next-line no-use-before-define
-class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
+class CheckAccessRightsClass extends SmartyModel {
     static getRightsFieldName() {
         return this.schema[defaults].rightsField || this.collection.name;
     }
@@ -53,10 +52,6 @@ class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
         //           Возможное решение: при переходе на NATS слать событие всем нодам на очистку кэша для
         //           этого сотрудника/объекта: memoized.clear("foo", 3);
         return getProfileRights(profile, this, object);
-
-    // return profile
-    //     ? getProfileRights(profile, this, object)
-    //     : {};
     }
 
     static async buildAccessQuery(profile, method, baseObject = null) {
@@ -78,7 +73,7 @@ class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
 
         try {
             // TODO: переделать! проверять права на раздел, и если их нет, то просто ничего не делать
-            const resultRawAllowed = await (this as unknown as TPublicInterface).getObjectsListByIds(
+            const resultRawAllowed = await (<TPublicInterfaceStatic><unknown> this).getObjectsListByIds(
                 profile,
                 objectsIdsList,
                 {},
@@ -86,7 +81,8 @@ class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
                 null,
                 false,
                 true,
-                ignoreDeletion
+                ignoreDeletion,
+                'read'
             );
 
             for (const { _id } of resultRawAllowed) {
@@ -140,7 +136,7 @@ class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
         try {
             // Т.к. у нас может не быть прав к разделу в принципе, то возникает ошибка AccessDenied.
             // Игнорируем её, т.к. нам не нужны объекты, к которым у нас нет доступа // TODO: <--- переделать! проверять права на раздел, и если их нет, то просто ничего не делать
-            const resultRawAllowed = await (this as unknown as TPublicInterface).getObjectsListByIds(
+            const resultRawAllowed = await (<TPublicInterfaceStatic><unknown> this).getObjectsListByIds(
                 profile,
                 objectsIdsList,
                 {},
@@ -148,9 +144,10 @@ class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
                 baseObject,
                 false,
                 true,
-                ignoreDeletion
+                ignoreDeletion,
+                'read'
             );
-            const objectsAllowed = await (this as unknown as TPublicInterface).getObjectsInfoPublic(
+            const objectsAllowed = await (<TPublicInterfaceStatic><unknown> this).getObjectsInfoPublic(
                 profile,
                 resultRawAllowed,
                 baseObject,
@@ -188,7 +185,7 @@ class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
             });
 
             if (resultRawNotAllowed.length > 0) {
-                const objectsNotAllowed = await (this as unknown as TPublicInterface).getObjectsInfoPublic(
+                const objectsNotAllowed = await (<TPublicInterfaceStatic><unknown> this).getObjectsInfoPublic(
                     profile,
                     resultRawNotAllowed,
                     baseObject,
@@ -201,7 +198,7 @@ class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
                 for (const object of objectsNotAllowed) {
                     const customData = {};
 
-                    if ((this as unknown as SmartySchema).is('ObjectUnderQuota')) {
+                    if ((<TSmartySchemaStatic><unknown> this).is('ObjectUnderQuota')) {
                         Object.assign(customData, { overRate: object.overRate });
                     }
 
@@ -227,9 +224,9 @@ class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
     }
 
     async checkAccessToMethod(profile, method) {
-        const rights = await (this.constructor as unknown as CheckAccessRightsClass).getRightsObject(profile, this, method);
+        const rights = await (<CheckAccessRightsClass><unknown> this.constructor).getRightsObject(profile, this, method);
 
-        return (this.constructor as unknown as CheckAccessRightsClass).schema[defaults].accessChecker.call(
+        return (<CheckAccessRightsClass><unknown> this.constructor).schema[defaults].accessChecker.call(
             this,
             profile,
             rights,
@@ -242,7 +239,7 @@ class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
             return [];
         }
 
-        const targetProfile = (this.constructor as unknown as CheckAccessRightsClass).targetType();
+        const targetProfile = (<CheckAccessRightsClass><unknown> this.constructor).targetType();
         const query: IGetterQuery = { _id: { $in: profilesIds } };
 
         if (targetProfile === 'employee') {
@@ -258,7 +255,7 @@ class CheckAccessRightsClass extends mongoose.Model<CheckAccessRightsClass> {
         //     Object.assign(query, isDeleted(this, true));
         // }
 
-        if ((this as unknown as SmartySchema).is('WsId') && _wsId) {
+        if ((<TSmartySchema><unknown> this).is('WsId') && _wsId) {
             query._wsId = _wsId;
         }
 
@@ -379,5 +376,6 @@ function CheckAccessRights(schema, options: IOptions = {}) {
 }
 
 export type TCheckAccessRights = CheckAccessRightsClass;
+export type TCheckAccessRightsStatic = typeof CheckAccessRightsClass;
 
 export default CheckAccessRights;

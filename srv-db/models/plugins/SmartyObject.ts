@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 
-import SmartySchema from '../SmartySchema';
+import SmartySchema, { TSmartySchema } from '../SmartySchema';
 import emitBgEvent from '../../lib/emitBgEvent';
+import { redisClient } from '../../db/Redis/Redis';
+import { TPublicInterfaceStatic } from './PublicObject/PublicInterface';
 
 const _affectedFields = new WeakMap();
 const SYS_KEYS = 'System:keys_ids';
@@ -45,9 +47,7 @@ class SmartyObjectClass extends mongoose.Model {
     }
 
     static basicDataBuilder(profile, method, baseObject = null, clearedData = {}) {
-        const self = this as unknown as SmartySchema;
-
-        return self
+        return (<TSmartySchema><unknown> this)
             .incomeDataModifiers(method)
             .reduce((query, fn) => Object.assign(query, fn(this, profile, baseObject, clearedData)), {});
     }
@@ -67,12 +67,9 @@ class SmartyObjectClass extends mongoose.Model {
     }
 
     static getPublicName(): string {
-        const self = this as unknown as SmartySchema;
-
-        return this.collection.name;
-
-        // FIXME: !!! PublicInterface
-        // return self.is('PublicInterface') ? self.getApiPrefix() : this.collection.name;
+        return (<TSmartySchema><unknown> this).is('PublicInterface')
+            ? (<TPublicInterfaceStatic><unknown> this).getApiPrefix()
+            : this.collection.name;
     }
 
     addAffectedField(...affected: string[]) {
@@ -128,10 +125,12 @@ class SmartyObjectClass extends mongoose.Model {
             }
 
             await this.updateOne(query);
-            const Model = this.constructor as unknown as T;
 
             // TODO: заменить на алгоритм с использованием lodash
-            const [data] = await Model.find({ _id: this._id }).limit(1).select(fields.join(' ')).lean();
+            const [data] = await (<T><unknown> this.constructor).find({ _id: this._id })
+                .limit(1)
+                .select(fields.join(' '))
+                .lean();
 
             for (const fieldName of fields) {
                 this.set({ [fieldName]: data[fieldName] });
@@ -142,50 +141,48 @@ class SmartyObjectClass extends mongoose.Model {
             this.addAffectedField(...Object.keys(query.$set));
 
             if (sendDbca) {
-                await Model.dbcaUpdate(this._id, this.getAffectedFields(), custom);
+                await (<T><unknown> this.constructor).dbcaUpdate(this._id, this.getAffectedFields(), custom);
             }
         }
     }
 
-    // FIXME: !!! Add redis
     static async incrementObjectIndex(_wsId, value = 1) {
         const fieldName = `${this.modelName}_${_wsId || 'nows'}`;
 
-        return 1;
-    // const isExists = await redis.hexists(
-    //     SYS_KEYS,
-    //     fieldName
-    // );
-    //
-    // if (!isExists) {
-    //     const instance = await this.findOne(
-    //         (_wsId
-    //                 ? {
-    //                     isDeleted: 'ignore',
-    //                     _wsId
-    //                 }
-    //                 : { isDeleted: 'ignore' }
-    //         )
-    //     )
-    //         .sort({ objIndex: -1 })
-    //         .select('objIndex')
-    //         .lean();
-    //
-    //     await redis.hset(
-    //         SYS_KEYS,
-    //         fieldName,
-    //         ((instance && instance.objIndex)
-    //                 ? instance.objIndex + 1
-    //                 : 0
-    //         )
-    //     );
-    // }
-    //
-    // return redis.hincrby(
-    //     SYS_KEYS,
-    //     fieldName,
-    //     value
-    // );
+        const isExists = await redisClient.hexists(
+            SYS_KEYS,
+            fieldName
+        );
+
+        if (!isExists) {
+            const instance = await this.findOne(
+                (_wsId
+                    ? {
+                        isDeleted: 'ignore',
+                        _wsId
+                    }
+                    : { isDeleted: 'ignore' }
+                )
+            )
+                .sort({ objIndex: -1 })
+                .select('objIndex')
+                .lean();
+
+            await redisClient.hset(
+                SYS_KEYS,
+                fieldName,
+                ((instance && instance.objIndex)
+                    ? instance.objIndex + 1
+                    : 0
+                )
+            );
+        }
+
+        return redisClient.hincrby(
+            SYS_KEYS,
+            fieldName,
+            value
+        );
     }
 
     async incrementObjectIndex() {
@@ -199,13 +196,8 @@ class SmartyObjectClass extends mongoose.Model {
     }
 }
 
-enum dbca {
-  'create',
-  'update',
-  'delete',
-}
 interface IOptions {
-  emitDbca?: Array<keyof typeof dbca>;
+  emitDbca?: Array<'create' | 'update' | 'delete'>;
   hideOnRemove?: boolean;
 }
 interface IRawData {
@@ -305,6 +297,6 @@ const SmartyObject = (schema: SmartySchema, options: IOptions = {}) => {
     }
 };
 
-export type TSmartyObject = SmartyObjectClass;
-
 export default SmartyObject;
+export type TSmartyObject = SmartyObjectClass;
+export type TSmartyObjectStatic = typeof SmartyObjectClass;

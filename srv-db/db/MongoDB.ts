@@ -11,7 +11,7 @@ export default (uri: string, models: any) => {
             return {
                 connectionFactory: connection => {
                     if (connection.readyState === 1) {
-                        logger.info('Database Connected successfully');
+                        logger.info('MongoDB connected');
                     }
                     connection.on('connected', () => {
                         logger.info('is connected');

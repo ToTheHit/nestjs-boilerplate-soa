@@ -127,5 +127,6 @@ const ProfileWithToken = (schema: SmartySchema, options: IOptions = {}) => {
     schema.loadClass(ProfileWithTokenClass, false);
 };
 
-export type TProfileWithToken = ProfileWithTokenClass;
 export default ProfileWithToken;
+export type TProfileWithToken = ProfileWithTokenClass;
+export type TProfileWithTokenStatic = typeof ProfileWithTokenClass;

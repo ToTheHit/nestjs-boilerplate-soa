@@ -1,17 +1,20 @@
-import { unsubscribeRedirectUrl, needConfirmAccountTime } from 'config';
+import { needConfirmAccountTime } from 'config';
 
-import crypto from 'crypto';
 import SmartyObject, { TSmartyObject } from './SmartyObject';
 import { AccessDenied, NotAcceptable, ValidationError } from '../../../lib/errors';
-import ProfileHuman, { TProfileHuman } from './ProfileHuman';
-import SmartySchema from '../SmartySchema';
-import AccountWithConfirmation, { TAccountWithConfirmation } from './AccountWithConfirmation';
+import ProfileHuman, { TProfileHuman, TProfileHumanStatic } from './ProfileHuman';
+import SmartySchema, { TObjectId } from '../SmartySchema';
+import AccountWithConfirmation, {
+    TAccountWithConfirmation,
+    TAccountWithConfirmationStatic
+} from './AccountWithConfirmation';
 import SmartyModel from '../SmartyModel';
 import { TProfileWithToken } from '../ProfileWithToken';
 import sha1 from '../../../lib/utils/sha1';
 import emitBgEvent from '../../lib/emitBgEvent';
 import { PublicInterfaceController } from './PublicObject/PublicInterface';
-import { initSessionCookies } from '../../../lib/Restify/lib';
+import { TUser } from '../../../apps/srv-auth/models/user';
+import mq from '../../db/RabbitMQ/MQHandler';
 
 interface ISignUp {
     email: string;
@@ -30,7 +33,7 @@ class Account extends SmartyModel {
         });
     }
 
-    static async getDataByBoundPlatform(platforms) { // TODO: проверить, используется ли
+    static async getDataByBoundPlatform(platforms): Promise<[TObjectId]> { // TODO: проверить, используется ли
         return (await SmartySchema.model('device').find({
             platform: { $in: platforms }
         })
@@ -39,7 +42,7 @@ class Account extends SmartyModel {
             .map(({ _user }) => _user);
     }
 
-    static async signUp(options: ISignUp, userMeta) {
+    static async signUp(options: ISignUp, userMeta): Promise<TUser> {
         const {
             referrer = '',
             country = '',
@@ -191,11 +194,10 @@ class Account extends SmartyModel {
 
         await account.resetSessions();
 
-        // FIXME: !!!
-        // await mq.publish('socket-commands', 'disconnect-other-sessions', {
-        //     _user: account._id,
-        //     reason: 'password was changed'
-        // });
+        await mq.publish('socket-commands', 'disconnect-other-sessions', {
+            _user: account._id,
+            reason: 'password was changed'
+        });
 
         return account;
     }
@@ -389,3 +391,7 @@ function AccountPlugin(schema: SmartySchema) {
 export default AccountPlugin;
 
 export type TAccountPlugin = Account & AccountController & TProfileHuman & TAccountWithConfirmation;
+export type TAccountPluginStatic = typeof Account &
+    typeof AccountController &
+    TProfileHumanStatic &
+    TAccountWithConfirmationStatic;

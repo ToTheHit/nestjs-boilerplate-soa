@@ -116,3 +116,4 @@ function AccountWithConfirmation(schema: SmartySchema) {
 
 export default AccountWithConfirmation;
 export type TAccountWithConfirmation = AccountWithConfirmationClass;
+export type TAccountWithConfirmationStatic = typeof AccountWithConfirmationClass;
