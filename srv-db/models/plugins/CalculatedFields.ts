@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { chunkify } from '../../../lib/utils/fn';
 import { ServerError } from '../../../lib/errors';
-import SmartySchema from '../SmartySchema';
-import SmartyModel from '../SmartyModel';
+import MagicSchema from '../MagicSchema';
+import MagicModel from '../MagicModel';
 
 const fieldsHandler = Symbol('calculating-fields-handlers');
 const fieldsHandlerInner = Symbol('calculating-fields-handlers-inner');
@@ -32,7 +32,7 @@ const calcHandlersExec =
       return promises;
   };
 
-class CalculatedFieldsHandler extends SmartyModel {
+class CalculatedFieldsHandler extends MagicModel {
     static calculatedFields(returnSchemas = false) {
         if (!returnSchemas) {
             return Array.from(this.schema[fieldsSet]);
@@ -144,9 +144,9 @@ const CalculatedFields = (schema, options: IOptions) => {
     } = options.handler;
 
     const fields =
-    options.fields instanceof SmartySchema
+    options.fields instanceof MagicSchema
         ? options.fields
-        : new SmartySchema(options.fields, { _id: false, id: false });
+        : new MagicSchema(options.fields, { _id: false, id: false });
 
     if (options.customFieldsList && !schema[options.customFieldsList]) {
         schema[options.customFieldsList] = new Set();
@@ -193,17 +193,6 @@ const CalculatedFields = (schema, options: IOptions) => {
                         }
                     }
                 };
-
-                // await cacheSubObjectsCalc(profile, this.schema[calcCache], answer, objectsList, list => (
-                //     this.calculatedFieldsGetStatic(
-                //         profile,
-                //         merger,
-                //         this.schema[fieldsHandler],
-                //         list,
-                //         fieldsToGet,
-                //         baseObject
-                //     )
-                // ));
 
                 await this.calculatedFieldsGetStatic(
                     profile,

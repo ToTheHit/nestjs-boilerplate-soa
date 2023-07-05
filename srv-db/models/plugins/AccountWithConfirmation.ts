@@ -1,13 +1,13 @@
-import SmartySchema, { TSmartySchemaStatic } from '../SmartySchema';
+import MagicSchema, { TMagicSchemaStatic } from '../MagicSchema';
 import { NotAcceptable, ValidationError } from '../../../lib/errors';
 import emitBgEvent from '../../lib/emitBgEvent';
-import SmartyModel from '../SmartyModel';
+import MagicModel from '../MagicModel';
 
 const UNCONFIRMED = 'not_confirmed';
 const CONFIRMED = 'confirmed';
 
 // eslint-disable-next-line no-use-before-define
-class AccountWithConfirmationClass extends SmartyModel {
+class AccountWithConfirmationClass extends MagicModel {
     static CONFIRM_TYPES = {
         UNCONFIRMED,
         CONFIRMED
@@ -29,7 +29,7 @@ class AccountWithConfirmationClass extends SmartyModel {
         return this.emailConfirmedStatus === CONFIRMED;
     }
 
-    async confirmEmail(email, emailConfirmedStatus = CONFIRMED) { // TODO: вынести все .set и .save в методы модели
+    async confirmEmail(email, emailConfirmedStatus = CONFIRMED) {
         const sendNotif = this.emailConfirmedStatus === UNCONFIRMED && emailConfirmedStatus !== UNCONFIRMED;
 
         const oldStatus = this.emailConfirmedStatus;
@@ -53,7 +53,7 @@ class AccountWithConfirmationClass extends SmartyModel {
                 oldStatus,
                 newStatus: emailConfirmedStatus
             }),
-            (<TSmartySchemaStatic> this.model()).emitModelEvent('instance-post-confirm-email', this),
+            (<TMagicSchemaStatic> this.model()).emitModelEvent('instance-post-confirm-email', this),
             this.model().dbcaUpdate(this._id, ['email', 'emailConfirmedStatus'])
         ];
 
@@ -64,7 +64,7 @@ class AccountWithConfirmationClass extends SmartyModel {
     }
 
     async checkEmailConfirmationAllowed(email) {
-        const emailDupCount = await (<SmartyModel> this.model())
+        const emailDupCount = await (<MagicModel> this.model())
             .countDocuments({ email, emailConfirmedStatus: CONFIRMED });
 
         if (emailDupCount > 0) {
@@ -89,7 +89,7 @@ class AccountWithConfirmationClass extends SmartyModel {
         await this.model().dbcaUpdate(this._id, ['lastEmail']);
     }
 }
-function AccountWithConfirmation(schema: SmartySchema) {
+function AccountWithConfirmation(schema: MagicSchema) {
     schema.add({
         emailConfirmedStatus: {
             enum: [

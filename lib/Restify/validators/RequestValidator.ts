@@ -2,12 +2,12 @@ import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import { muteUnknownFieldsError } from 'config';
 
 import * as mongoose from 'mongoose/browser';
-import SmartySchema from '../../../srv-db/models/SmartySchema';
+import MagicSchema from '../../../srv-db/models/MagicSchema';
 import {
     AccessDenied, GenericError, NotFoundError, ValidationError
 } from '../../errors';
 
-import SmartyDocument from '../../../srv-db/models/SmartyDocument';
+import MagicDocument from '../../../srv-db/models/MagicDocument';
 import loggerRaw from '../../logger';
 
 const logger = loggerRaw('RequestValidator');
@@ -38,8 +38,6 @@ class RequestObject extends mongoose.Document {
     }
 
     async validateRequest(source) {
-        // this.setCtx(ctx);
-
         return new Promise((resolve, reject) => {
             (<mongoose.Document> this).validate()
                 .then(() => resolve(this))
@@ -73,9 +71,9 @@ const buildSchema = fields => {
         return null;
     }
 
-    const schema = fields instanceof SmartySchema
+    const schema = fields instanceof MagicSchema
         ? fields
-        : new SmartySchema(typeof fields === 'object' && fields !== null && !Array.isArray(fields)
+        : new MagicSchema(typeof fields === 'object' && fields !== null && !Array.isArray(fields)
             ? fields
             : {}, { _id: false, id: false, versionKey: false });
 
@@ -120,8 +118,6 @@ export default (query: IData, body: IData) => {
             if (muteUnknownFieldsError) {
                 logger.warn('unknown fields in request', unknownFields);
             } else {
-                // Для выключения строгого режима контроля передаваемых полей,
-                // нужно поставить в конфиге muteUnknownFieldsError = true
                 throw new ValidationError('unknown fields provided', { fields: unknownFields });
             }
         }

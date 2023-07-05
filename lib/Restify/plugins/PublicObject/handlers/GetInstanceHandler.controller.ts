@@ -10,7 +10,6 @@ import GetInstanceInterceptor from '../../../Interceptors/getInstanceObject';
 export default class PublicObjectGetInstance {
     @Get(':_id')
     @UseInterceptors(GetInstanceInterceptor(true))
-    // @ResponseType('simple')
     getHandler(
         @Param('_id') _id
     ) {

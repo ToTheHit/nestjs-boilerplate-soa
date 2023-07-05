@@ -1,5 +1,5 @@
-import SmartySchema from '../SmartySchema';
-import SmartyModel from '../SmartyModel';
+import MagicSchema from '../MagicSchema';
+import MagicModel from '../MagicModel';
 import memo from '../../../lib/utils/memo';
 import { AccessDenied } from '../../../lib/errors';
 
@@ -16,7 +16,7 @@ const getAccessRightsFn = async profile => {
 const getAdminRights = memo(getAdminRightsFn, 'profile getAdminRights');
 const getAccessRights = memo(getAccessRightsFn, 'profile getAccessRights');
 
-class ProfileWithAccessClass extends SmartyModel {
+class ProfileWithAccessClass extends MagicModel {
     async checkAccessRights(instance, method, throwError = true) {
         if (typeof this.model().schema[defaults].checkAccessRights === 'function') {
             return this.model().schema[defaults].checkAccessRights.call(this, instance, method, throwError);
@@ -60,7 +60,7 @@ class ProfileWithAccessClass extends SmartyModel {
         return getAccessRights(this);
     }
 }
-const ProfileWithAccess = (schema: SmartySchema, options = {}) => {
+const ProfileWithAccess = (schema: MagicSchema, options = {}) => {
     // eslint-disable-next-line no-param-reassign
     schema[defaults] = {
         checkAccessRights: null,

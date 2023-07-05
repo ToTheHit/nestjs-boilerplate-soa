@@ -1,9 +1,9 @@
-import SmartyModel from '../../../srv-db/models/SmartyModel';
-import SmartySchema from '../../../srv-db/models/SmartySchema';
-import SmartyObject, { TSmartyObject, TSmartyObjectStatic } from '../../../srv-db/models/plugins/SmartyObject';
-import SmartyDocument from '../../../srv-db/models/SmartyDocument';
+import MagicModel from '../../../srv-db/models/MagicModel';
+import MagicSchema from '../../../srv-db/models/MagicSchema';
+import MagicObject, { TMagicObject, TMagicObjectStatic } from '../../../srv-db/models/plugins/MagicObject';
+import MagicDocument from '../../../srv-db/models/MagicDocument';
 
-class DeviceClass extends SmartyModel {
+class DeviceClass extends MagicModel {
     static async getUserDevices(user, platforms) {
         return this.find({
             _user: user._id,
@@ -36,7 +36,7 @@ class DeviceClass extends SmartyModel {
 
         if (updateResult.matchedCount === 0) {
             await this.create({
-                _id: new SmartySchema.ObjectId(),
+                _id: new MagicSchema.ObjectId(),
                 sessionId,
                 platform,
                 deviceName,
@@ -90,7 +90,7 @@ class DeviceClass extends SmartyModel {
     }
 }
 
-const DeviceSchema = new SmartySchema({
+const DeviceSchema = new MagicSchema({
     sessionId: {
         type: String,
         default: null
@@ -112,7 +112,7 @@ const DeviceSchema = new SmartySchema({
         default: false
     },
     _user: {
-        type: SmartySchema.Types.ObjectId,
+        type: MagicSchema.Types.ObjectId,
         ref: 'user',
         required: true
     },
@@ -122,12 +122,12 @@ const DeviceSchema = new SmartySchema({
     }
 });
 
-DeviceSchema.plugin(SmartyObject);
+DeviceSchema.plugin(MagicObject);
 
 DeviceSchema.loadClass(DeviceClass, false);
 
 export default DeviceSchema.model('device', 'devices');
 
 export { DeviceSchema };
-export type TDevice = DeviceClass & TSmartyObject & SmartyDocument;
-export type TDeviceStatic = typeof DeviceClass & TSmartyObjectStatic;
+export type TDevice = DeviceClass & TMagicObject & MagicDocument;
+export type TDeviceStatic = typeof DeviceClass & TMagicObjectStatic;

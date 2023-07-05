@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { NotFoundError } from 'rxjs';
 
-import { TSmartyObject } from '../SmartyObject';
-import SmartySchema, { TSmartySchemaStatic, TObjectId, TSmartySchema } from '../../SmartySchema';
+import { TMagicObject } from '../MagicObject';
+import MagicSchema, { TMagicSchemaStatic, TObjectId, TMagicSchema } from '../../MagicSchema';
 import securedFieldsList from '../../../lib/securedFieldsList';
 import {
     getObjectKeysWithValuesByObject, getObjectsDiff, omit, pick, reduceToObject
@@ -11,9 +11,9 @@ import { BadRequest, ForbiddenError, ValidationError } from '../../../../lib/err
 import isDeleted from '../../../lib/isDeleted';
 import { TShortId } from '../ShortId';
 import { IGetterQuery, IRequest } from '../../../../lib/interface';
-import SmartyDocument from '../../SmartyDocument';
+import MagicDocument from '../../MagicDocument';
 import { TCheckAccessRights } from './CheckAccessRights';
-import SmartyModel from '../../SmartyModel';
+import MagicModel from '../../MagicModel';
 import { TUser } from '../../../../apps/srv-auth/models/user';
 import { TCalculatedFields, TCalculatedFieldsStatic } from '../CalculatedFields';
 
@@ -65,7 +65,6 @@ const getCollectionsForAggregate = (sortQuery, fieldsFromOtherCollection) => {
             } else {
                 collections[fieldsFromOtherCollection[field]] = [field];
             }
-            // collections[field].add(fieldsFromOtherCollection[field]);
         }
     }
     if (Object.keys(collections).length) {
@@ -132,12 +131,12 @@ interface IGetObjectsInfoQuery {
   publicInfo?: boolean;
 }
 
-class PublicInterfaceObject extends SmartyModel {
+class PublicInterfaceObject extends MagicModel {
     static async findObjectByUser(user: TUser, _id: TObjectId) {
         const instance = await this.findOne({ [this.idField()]: _id });
 
         if (!instance) {
-            throw new NotFoundError(`${(<TSmartyObject><unknown> this).getPublicName()} not found`);
+            throw new NotFoundError(`${(<TMagicObject><unknown> this).getPublicName()} not found`);
         }
 
         const employee = await user.getWsAccess(instance._wsId);
@@ -152,7 +151,7 @@ class PublicInterfaceObject extends SmartyModel {
             Object.keys(this.schema.paths)
                 .filter(field => !securedFields.includes(field))
                 .concat(
-                    (<TSmartySchema><unknown> this).is('CalculatedFields')
+                    (<TMagicSchema><unknown> this).is('CalculatedFields')
                         ? (<TCalculatedFieldsStatic><unknown> this).calculatedFields()
                         : []
                 )
@@ -161,7 +160,6 @@ class PublicInterfaceObject extends SmartyModel {
 
     static async getObjectsInfo(profile, objectsList, baseObject = null, query: IGetObjectsInfoQuery = {}) {
         if (objectsList.list) {
-            // если у нас пагинация, то данные придут в таком виде. TODO: перенести на верхний уровень!
             return {
                 ...objectsList,
                 list: await this.getObjectsInfo(profile, objectsList.list, baseObject, query)
@@ -175,7 +173,7 @@ class PublicInterfaceObject extends SmartyModel {
         const { skipInner = false, fields: fieldsToGet, publicInfo = false } = query || {};
 
         const securedFields = await securedFieldsList(
-            (<TSmartySchema><unknown> this).describe(false, false),
+            (<TMagicSchema><unknown> this).describe(false, false),
             profile,
             'read',
             false,
@@ -191,9 +189,9 @@ class PublicInterfaceObject extends SmartyModel {
             return res;
         });
 
-        await (<TSmartySchemaStatic><unknown> this).emitModelEvent('pre-info', profile);
+        await (<TMagicSchemaStatic><unknown> this).emitModelEvent('pre-info', profile);
 
-        await (<TSmartySchemaStatic><unknown> this).emitModelEvent('objects-info', profile, result, objectsList, skipInner, baseObject, fieldsToGet);
+        await (<TMagicSchemaStatic><unknown> this).emitModelEvent('objects-info', profile, result, objectsList, skipInner, baseObject, fieldsToGet);
         for (const id of Object.keys(result)) {
             result[id] = omit(result[id], securedFields);
         }
@@ -202,10 +200,9 @@ class PublicInterfaceObject extends SmartyModel {
     }
 
     static async getObjectsInfoPublic(profile, objectsList, baseObject = null, query = {}) {
-        // TODO: Сделать логику флага publicInfo более адекватной и понятной...
         const answer = await this.getObjectsInfo(profile, objectsList, baseObject, { publicInfo: true, ...query });
 
-        await (<TSmartySchemaStatic><unknown> this).emitModelEvent('pre-answer', profile);
+        await (<TMagicSchemaStatic><unknown> this).emitModelEvent('pre-answer', profile);
 
         return answer;
     }
@@ -218,7 +215,7 @@ class PublicInterfaceObject extends SmartyModel {
         ignoreAccessQuery = false,
         queryModif: IGetterQuery = {}
     ): Promise<IGetterQuery> {
-        const filterQuery = request && request instanceof SmartyDocument && request.buildFilterQuery
+        const filterQuery = request && request instanceof MagicDocument && request.buildFilterQuery
             ? request.buildFilterQuery(this)
             : null;
 
@@ -226,7 +223,7 @@ class PublicInterfaceObject extends SmartyModel {
             ? await (<TCheckAccessRights><unknown> this).buildAccessQuery(profile, method, baseObject)
             : {};
         const basicQuery = getObjectKeysWithValuesByObject(
-            (<TSmartyObject><unknown> this).basicDataBuilder(profile, method, baseObject)
+            (<TMagicObject><unknown> this).basicDataBuilder(profile, method, baseObject)
         );
         const query: IGetterQuery = {};
 
@@ -346,7 +343,7 @@ class PublicInterfaceObject extends SmartyModel {
     }
 
     async toAnswer(profile) {
-        const securedFields = await securedFieldsList((<SmartyModel> this.constructor).schema.paths, profile, 'read', false);
+        const securedFields = await securedFieldsList((<MagicModel> this.constructor).schema.paths, profile, 'read', false);
 
         const data = this.toJSON();
 
@@ -356,9 +353,8 @@ class PublicInterfaceObject extends SmartyModel {
     async getObjectInfo(profile, fieldsToGet = []) {
         const answer = await this.toAnswer(profile);
 
-        // TODO: Понятия не имею сработает ли вариант для pre-info. Нужно будет проверить.
-        await (<TSmartySchemaStatic> this.constructor).emitModelEvent('pre-info', profile);
-        await (<TSmartySchemaStatic> this.constructor).emitModelEvent('instance-info', profile, answer, this, fieldsToGet);
+        await (<TMagicSchemaStatic> this.constructor).emitModelEvent('pre-info', profile);
+        await (<TMagicSchemaStatic> this.constructor).emitModelEvent('instance-info', profile, answer, this, fieldsToGet);
 
         return Array.isArray(fieldsToGet) && fieldsToGet.length > 0 ? pick(answer, fieldsToGet) : answer;
     }
@@ -370,13 +366,13 @@ class PublicInterfaceObject extends SmartyModel {
 
         const answer = await this.getObjectInfo(profile, fieldsToGet);
 
-        await (<TSmartySchemaStatic> this.constructor).emitModelEvent('pre-answer', profile);
+        await (<TMagicSchemaStatic> this.constructor).emitModelEvent('pre-answer', profile);
 
         return answer;
     }
 
     getPublicInfo() {
-        const schemaPaths = (<SmartyModel> this.constructor).schema.paths;
+        const schemaPaths = (<MagicModel> this.constructor).schema.paths;
         const publicFields = Object.keys(schemaPaths).filter(key => schemaPaths[key].options.public);
 
         const data = this.toJSON();
@@ -395,7 +391,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
             throw new ForbiddenError('global instance getter disabled');
         }
 
-        if (!SmartySchema.ObjectId.isValid(_id)) {
+        if (!MagicSchema.ObjectId.isValid(_id)) {
             throw new ValidationError('invalid id', { _id });
         }
 
@@ -414,7 +410,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
         const instance = await this.findOne(query);
 
         if (!instance) {
-            throw new NotFoundError(`${(<TSmartyObject><unknown> this).getPublicName()} not found`);
+            throw new NotFoundError(`${(<TMagicObject><unknown> this).getPublicName()} not found`);
         }
 
         return instance;
@@ -427,7 +423,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
             return profile;
         }
 
-        if (!SmartySchema.ObjectId.isValid(_id)) {
+        if (!MagicSchema.ObjectId.isValid(_id)) {
             throw new ValidationError('invalid id', { _id });
         }
 
@@ -583,9 +579,6 @@ class PublicInterfaceController extends PublicInterfaceObject {
         const totalObjects = await this.countDocuments(dbQuery);
 
         if (totalObjects > 0) {
-            // TODO: !!! Проверить и Оптимизировать !!! Набросал на скорую руку сортировку по полям,
-            //  которые находятся в другой коллекции. Работает, но чувствую, что есть какие-то граничные кейсы,
-            //  на которых что-то отвалится/перетрётся
             if (collectionsForAggregate) {
                 const aggregateQuery = getAggregationQuery(
                     dbQuery,
@@ -760,15 +753,15 @@ class PublicInterfaceController extends PublicInterfaceObject {
     }
 
     static async saveInstanceLowLevel(profile, dataCleared, instance, options = {}) {
-        await (<TSmartySchemaStatic><unknown> this).emitModelEvent('instance-pre-save', profile, instance, dataCleared);
+        await (<TMagicSchemaStatic><unknown> this).emitModelEvent('instance-pre-save', profile, instance, dataCleared);
 
         instance.set(dataCleared);
         if (!instance._id) {
-            instance.set({ _id: new SmartySchema.ObjectId() });
+            instance.set({ _id: new MagicSchema.ObjectId() });
         }
         await instance.save(options);
 
-        await (<TSmartySchemaStatic><unknown> this).emitModelEvent('instance-post-save', profile, instance, dataCleared);
+        await (<TMagicSchemaStatic><unknown> this).emitModelEvent('instance-post-save', profile, instance, dataCleared);
 
         return instance;
     }
@@ -778,11 +771,11 @@ class PublicInterfaceController extends PublicInterfaceObject {
     }
 
     static async createObjectLowLevel(profile, instance, rawData = {}, baseObject = null) {
-        await (<TSmartySchemaStatic><unknown> this).emitModelEvent('instance-pre-create', profile, instance, baseObject, rawData);
+        await (<TMagicSchemaStatic><unknown> this).emitModelEvent('instance-pre-create', profile, instance, baseObject, rawData);
 
         await this.saveInstance(profile, rawData, instance);
 
-        await (<TSmartySchemaStatic><unknown> this).emitModelEvent('instance-post-create', profile, instance, baseObject, rawData);
+        await (<TMagicSchemaStatic><unknown> this).emitModelEvent('instance-post-create', profile, instance, baseObject, rawData);
 
         instance.isNewObject(false);
 
@@ -798,7 +791,6 @@ class PublicInterfaceController extends PublicInterfaceObject {
     }
 
     static async createObjectsList(profile, request, baseObject = null) {
-    // TODO: если в запросе участвует один объект, вызывать метод для обработки одного объекта
         const instancesRaw = new Map();
         const instances = [];
 
@@ -810,7 +802,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
             instancesRaw.set(instance, rawData);
         }
 
-        await (<TSmartySchemaStatic><unknown> this).emitModelEvent('collection-pre-create', profile, instancesRaw);
+        await (<TMagicSchemaStatic><unknown> this).emitModelEvent('collection-pre-create', profile, instancesRaw);
 
         for (const [instance, rawData] of instancesRaw) {
             const result = await this.createObjectLowLevel(profile, instance, rawData, baseObject);
@@ -818,7 +810,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
             instances.push(result.toJSON());
         }
 
-        await (<TSmartySchemaStatic><unknown> this).emitModelEvent('collection-post-create', profile, instances, baseObject);
+        await (<TMagicSchemaStatic><unknown> this).emitModelEvent('collection-post-create', profile, instances, baseObject);
 
         return instances;
     }
@@ -830,8 +822,6 @@ class PublicInterfaceController extends PublicInterfaceObject {
     }
 
     static async updateObjectsList(profile, query, request, baseObject = null) {
-    // TODO: если в запросе участвует один объект, вызывать метод для обработки одного объекта
-
         // массовый патчинг объектов с одинаковыми данными
         const instancesRaw = await (Array.isArray(query.ids)
             ? this.getObjectsListByIds(profile, query.ids, query, {}, baseObject, false, false, false, 'update')
@@ -860,24 +850,24 @@ class PublicInterfaceController extends PublicInterfaceObject {
     }
 
     async validateRawData(profile, request, method, baseObject = null) {
-        const requestData = request instanceof SmartyDocument ? request.toObject() : { ...request };
+        const requestData = request instanceof MagicDocument ? request.toObject() : { ...request };
 
         if (Object.keys(requestData).length === 0) {
             throw new ValidationError('request data is empty');
         }
 
-        const securedFields = await securedFieldsList((<SmartyModel> this.constructor).schema.paths, profile, method, method !== 'read');
+        const securedFields = await securedFieldsList((<MagicModel> this.constructor).schema.paths, profile, method, method !== 'read');
 
-        if ((<TSmartySchemaStatic><unknown> this.constructor).is('CalculatedFields')) {
+        if ((<TMagicSchemaStatic><unknown> this.constructor).is('CalculatedFields')) {
             securedFields.push(...(<TCalculatedFields><unknown> this.constructor).calculatedFields());
         }
 
-        const schemaKeys = Object.keys((<SmartyModel> this.constructor).schema.paths);
+        const schemaKeys = Object.keys((<MagicModel> this.constructor).schema.paths);
 
         const allowedData = pick(omit(requestData, securedFields), schemaKeys);
         const clearedData = method === 'update' ? getObjectsDiff(this.toJSON(), allowedData) : allowedData;
 
-        const basicData = (<TSmartyObject><unknown> this.constructor).basicDataBuilder(
+        const basicData = (<TMagicObject><unknown> this.constructor).basicDataBuilder(
             profile,
             method,
             baseObject,
@@ -890,10 +880,10 @@ class PublicInterfaceController extends PublicInterfaceObject {
             this.set(clearedData);
         }
 
-        await (<TSmartySchemaStatic> this.constructor).emitModelEvent('instance-pre-validate', profile, this, request, method, clearedData);
+        await (<TMagicSchemaStatic> this.constructor).emitModelEvent('instance-pre-validate', profile, this, request, method, clearedData);
 
         try {
-            await (<SmartyDocument><unknown> this.constructor).validate(clearedData, Object.keys(clearedData));
+            await (<MagicDocument><unknown> this.constructor).validate(clearedData, Object.keys(clearedData));
         } catch ({ errors }) {
             const misc = {};
 
@@ -908,7 +898,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
             throw new ValidationError('invalid incoming data', misc);
         }
 
-        await (<TSmartySchemaStatic> this.constructor).emitModelEvent('instance-validate', profile, this, request, method, clearedData);
+        await (<TMagicSchemaStatic> this.constructor).emitModelEvent('instance-validate', profile, this, request, method, clearedData);
 
         this.addAffectedField(...this.getAffectedFields());
 
@@ -917,7 +907,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
 
     async updateObjectLowLevel(profile, rawData, dataCleared, baseObject = null, options = {}) {
         const oldData = pick(this, Object.keys(dataCleared));
-        const self = <TSmartySchemaStatic><unknown> this.constructor;
+        const self = <TMagicSchemaStatic><unknown> this.constructor;
 
         await self.emitModelEvent('instance-pre-update', profile, this, dataCleared, oldData, options);
 
@@ -932,7 +922,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
         const dataCleared = await this.validateRawData(profile, rawData, method, baseObject);
 
         if (
-            (<TSmartySchemaStatic> this.constructor).is('ObjectChangesConfirmation') &&
+            (<TMagicSchemaStatic> this.constructor).is('ObjectChangesConfirmation') &&
             this.needConfirmation(profile, [dataCleared])
         ) {
             return this.saveChanges(profile, dataCleared);

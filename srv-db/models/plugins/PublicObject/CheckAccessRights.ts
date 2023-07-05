@@ -2,13 +2,13 @@ import memo from '../../../../lib/utils/memo';
 import { AccessDenied } from '../../../../lib/errors';
 import { reduceToObject } from '../../../../lib/utils/fn';
 import { ACCESS } from '../../../lib/constants';
-import SmartySchema, { TSmartySchema, TSmartySchemaStatic } from '../../SmartySchema';
+import MagicSchema, { TMagicSchema, TMagicSchemaStatic } from '../../MagicSchema';
 import isDeleted from '../../../lib/isDeleted';
 import { TPublicInterfaceStatic } from './PublicInterface';
-import { TSmartyObject } from '../SmartyObject';
+import { TMagicObject } from '../MagicObject';
 import { IGetterQuery } from '../../../../lib/interface';
 import EmployeeRelatedFields from '../EmployeeRelatedFields';
-import SmartyModel from '../../SmartyModel';
+import MagicModel from '../../MagicModel';
 
 const defaults = Symbol('defaults');
 
@@ -23,34 +23,20 @@ const accessQueryBuilderFn = async (profile, Model, method, baseObject) => {
 const getProfileRights = memo(getProfileRightsFn, 'Model getProfileRights');
 const accessQueryBuilder = memo(accessQueryBuilderFn, 'Model buildAccessQuery');
 
-class CheckAccessRightsClass extends SmartyModel {
+class CheckAccessRightsClass extends MagicModel {
     static getRightsFieldName() {
         return this.schema[defaults].rightsField || this.collection.name;
     }
 
     static async getRightsObject(profile, object, method) {
-    // if (this.is('ObjectUnderQuota')) {
-    //     this.checkAccessSections(profile, this);
-    // }
-
         if (!profile) {
             return {};
         }
-        // Если проверяются права на create, то не мемоизируем результат, так как изначально в объекте
-        // поле _accessId пустое, а значит при дальнейших запросах эта проверка будет возвращать неправильное значение
+
         if (method === 'create') {
             return getProfileRightsFn(profile, this, object);
         }
 
-        // FIXME: Над этим вызовом нужно будет подумать, потому что:
-        //  1. Если передавать сразу объект, то для разных запросов memo будет считать, что это разные объекты,
-        //    а польза memo остаётся только в рамках одного запроса
-        //  2. Если передавать строки с id вместо целых объектов, то:
-        //      2.1. В проверке прав возможно нам понадобятся еще какие-нибудь поля этих объектов
-        //      2.2. При смене прав они не будут моментально обновлены, а если пользователь будет запрашивать права
-        //           для этого объекта чаще, чем раз в 30 секунд, то они у него не обновятся никогда.
-        //           Возможное решение: при переходе на NATS слать событие всем нодам на очистку кэша для
-        //           этого сотрудника/объекта: memoized.clear("foo", 3);
         return getProfileRights(profile, this, object);
     }
 
@@ -72,7 +58,6 @@ class CheckAccessRightsClass extends SmartyModel {
         const result = [];
 
         try {
-            // TODO: переделать! проверять права на раздел, и если их нет, то просто ничего не делать
             const resultRawAllowed = await (<TPublicInterfaceStatic><unknown> this).getObjectsListByIds(
                 profile,
                 objectsIdsList,
@@ -127,15 +112,10 @@ class CheckAccessRightsClass extends SmartyModel {
     ) {
         const result = [];
         const allowedObjects = [];
-        const collectionNameMeta = (<TSmartyObject><unknown> this).getPublicName();
+        const collectionNameMeta = (<TMagicObject><unknown> this).getPublicName();
         const collectionName = this.collection.name;
 
-        // const DialogConfiguration = SmartySchema.model('dialog_configuration');
-        // const DialogParticipant = SmartySchema.model('dialog_participant');
-
         try {
-            // Т.к. у нас может не быть прав к разделу в принципе, то возникает ошибка AccessDenied.
-            // Игнорируем её, т.к. нам не нужны объекты, к которым у нас нет доступа // TODO: <--- переделать! проверять права на раздел, и если их нет, то просто ничего не делать
             const resultRawAllowed = await (<TPublicInterfaceStatic><unknown> this).getObjectsListByIds(
                 profile,
                 objectsIdsList,
@@ -198,7 +178,7 @@ class CheckAccessRightsClass extends SmartyModel {
                 for (const object of objectsNotAllowed) {
                     const customData = {};
 
-                    if ((<TSmartySchemaStatic><unknown> this).is('ObjectUnderQuota')) {
+                    if ((<TMagicSchemaStatic><unknown> this).is('ObjectUnderQuota')) {
                         Object.assign(customData, { overRate: object.overRate });
                     }
 
@@ -246,27 +226,15 @@ class CheckAccessRightsClass extends SmartyModel {
             query._user = { $ne: null };
         }
 
-        // if (this.is('ObjectUnderQuota') && !this.constructor.overRateProfilesAllowed()) {
-        //     query.overRate = false;
-        // }
-        // #WORKSPACE#
-        // const Workspace = SmartySchema.model('workspace');
-        // if (this instanceof Workspace) {
-        //     Object.assign(query, isDeleted(this, true));
-        // }
-
-        if ((<TSmartySchema><unknown> this).is('WsId') && _wsId) {
+        if ((<TMagicSchema><unknown> this).is('WsId') && _wsId) {
             query._wsId = _wsId;
         }
 
-        // #SERVICE_NOTE#
-        // const ServiceNote = SmartySchema.model('service_note');
-        // if (this.is('WsCollectionObject') && this.constructor !== ServiceNote) {
         if (this.is('WsCollectionObject')) {
             query.accessType = { $ne: 'guest' };
         }
 
-        const ids = await SmartySchema.model(targetProfile).find(query).select('_id').lean();
+        const ids = await MagicSchema.model(targetProfile).find(query).select('_id').lean();
 
         return ids.map(({ _id }) => _id);
     }

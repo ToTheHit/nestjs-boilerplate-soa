@@ -6,7 +6,7 @@ import { session as options } from 'config';
 
 import loggerRaw from '../../logger';
 import { getRawDataFromRequest } from '../getAccountFromRequest';
-import SmartySchema from '../../../srv-db/models/SmartySchema';
+import MagicSchema from '../../../srv-db/models/MagicSchema';
 
 const logger = loggerRaw('RequestInfoInterceptor');
 
@@ -68,7 +68,7 @@ export default class RequestInfoInterceptor implements NestInterceptor {
         const data = getRawDataFromRequest(req.headers, options);
 
         if (data && data.sid) {
-            const Device = SmartySchema.model('device');
+            const Device = MagicSchema.model('device');
             const deviceInfo = await Device.findOne({ sessionId: data.sid }).select('platform deviceName');
 
             if (deviceInfo) {
@@ -93,8 +93,6 @@ export default class RequestInfoInterceptor implements NestInterceptor {
         };
 
         return next.handle().pipe(data => {
-            // console.log('>>> AFTER GLOBAL RequestInfoInterceptor');
-
             return data;
         });
     }

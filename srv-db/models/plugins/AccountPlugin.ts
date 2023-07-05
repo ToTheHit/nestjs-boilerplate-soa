@@ -1,14 +1,14 @@
 import { needConfirmAccountTime } from 'config';
 
-import SmartyObject, { TSmartyObject } from './SmartyObject';
+import MagicObject, { TMagicObject } from './MagicObject';
 import { AccessDenied, NotAcceptable, ValidationError } from '../../../lib/errors';
 import ProfileHuman, { TProfileHuman, TProfileHumanStatic } from './ProfileHuman';
-import SmartySchema, { TObjectId } from '../SmartySchema';
+import MagicSchema, { TObjectId } from '../MagicSchema';
 import AccountWithConfirmation, {
     TAccountWithConfirmation,
     TAccountWithConfirmationStatic
 } from './AccountWithConfirmation';
-import SmartyModel from '../SmartyModel';
+import MagicModel from '../MagicModel';
 import { TProfileWithToken } from '../ProfileWithToken';
 import sha1 from '../../../lib/utils/sha1';
 import emitBgEvent from '../../lib/emitBgEvent';
@@ -23,7 +23,7 @@ interface ISignUp {
     country?: string;
     lang?: string;
 }
-class Account extends SmartyModel {
+class Account extends MagicModel {
     set password(password) {
         (<TProfileWithToken><unknown> this).updateSalt();
 
@@ -34,7 +34,7 @@ class Account extends SmartyModel {
     }
 
     static async getDataByBoundPlatform(platforms): Promise<[TObjectId]> { // TODO: проверить, используется ли
-        return (await SmartySchema.model('device').find({
+        return (await MagicSchema.model('device').find({
             platform: { $in: platforms }
         })
             .select('_user')
@@ -127,7 +127,7 @@ class Account extends SmartyModel {
 
         const orQuery = [];
 
-        if (SmartySchema.ObjectId.isValidStrict(searchString)) {
+        if (MagicSchema.ObjectId.isValidStrict(searchString)) {
             orQuery.push({ _id: searchString.toLowerCase() });
         }
 
@@ -164,7 +164,7 @@ class Account extends SmartyModel {
             Object.assign(query, { type });
         }
 
-        const tokenObject = await SmartySchema.model('token').findOne(query);
+        const tokenObject = await MagicSchema.model('token').findOne(query);
 
         if (!tokenObject) {
             throw new ValidationError('Token is incorrect', { token });
@@ -185,7 +185,7 @@ class Account extends SmartyModel {
         const account = await this.getAccountByToken(
             tokenValue,
             // TODO: Добавить приведение типа
-            SmartySchema.model('token').RESET_PASSWORD_TYPE
+            MagicSchema.model('token').RESET_PASSWORD_TYPE
         );
 
         account.set({ password: newPassword });
@@ -261,7 +261,7 @@ class Account extends SmartyModel {
     }
 
     async getBoundPlatforms() {
-        return Array.from(new Set((await SmartySchema.model('device').find({
+        return Array.from(new Set((await MagicSchema.model('device').find({
             _user: this._id
         })
             .select('platform')
@@ -307,7 +307,7 @@ class AccountController extends Account {
         const user = await this.logIn(request, userMeta);
 
         await user.save();
-        await (<TSmartyObject><unknown> this).dbcaUpdate(user._id, user.getAffectedFields());
+        await (<TMagicObject><unknown> this).dbcaUpdate(user._id, user.getAffectedFields());
 
         return user;
     }
@@ -317,14 +317,14 @@ class AccountController extends Account {
 
         await user.save();
 
-        await (<TSmartyObject><unknown> this).dbcaUpdate(user._id, user.getAffectedFields());
+        await (<TMagicObject><unknown> this).dbcaUpdate(user._id, user.getAffectedFields());
 
         return user;
     }
 
     static async activateByToken(request) {
         const { token: tokenValue = null } = request;
-        const account = await this.getAccountByToken(tokenValue, SmartySchema.model('token').ACTIVATE_TYPE);
+        const account = await this.getAccountByToken(tokenValue, MagicSchema.model('token').ACTIVATE_TYPE);
 
         await account.confirmAccount();
 
@@ -332,8 +332,8 @@ class AccountController extends Account {
     }
 }
 
-function AccountPlugin(schema: SmartySchema) {
-    schema.plugin(SmartyObject);
+function AccountPlugin(schema: MagicSchema) {
+    schema.plugin(MagicObject);
 
     schema.add({
         confirmed: {

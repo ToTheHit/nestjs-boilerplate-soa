@@ -1,10 +1,10 @@
 import { extractData } from '../utils/token';
-import SmartySchema from '../../srv-db/models/SmartySchema';
+import MagicSchema from '../../srv-db/models/MagicSchema';
 import { BadRequest } from '../errors';
 import { parse as parseCookies } from '../utils/cookie';
 
 const availableModels = new Map([
-    [SmartySchema.model('user').modelName, SmartySchema.model('user')]
+    [MagicSchema.model('user').modelName, MagicSchema.model('user')]
 ]);
 
 const getTokenFromCookies = (headers, key, secret) => (headers && headers.cookie
@@ -46,7 +46,7 @@ const getAccountFromRequest = async (headers, { headerKey, cookieKey, secret }) 
         if (Model) {
             const account = await Model.findById(id);
 
-            const isSidExists = await SmartySchema.model('device').exists({
+            const isSidExists = await MagicSchema.model('device').exists({
                 _user: id,
                 sessionId: sid
             });

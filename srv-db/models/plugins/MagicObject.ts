@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import SmartySchema, { TSmartySchema } from '../SmartySchema';
+import MagicSchema, { TMagicSchema } from '../MagicSchema';
 import emitBgEvent from '../../lib/emitBgEvent';
 import { redisClient } from '../../db/Redis/Redis';
 import { TPublicInterfaceStatic } from './PublicObject/PublicInterface';
@@ -17,8 +17,6 @@ async function dbCollectionAffectedEmitter(
     if (!Array.isArray(_ids) || (Array.isArray(_ids) && _ids.length > 0)) {
         const list = Array.isArray(_ids) ? _ids : [_ids];
 
-        // logger.debug(`DBCA ${action} ${this.modelName} ${list.join(',')}`);
-
         await emitBgEvent.sendEvent(
             action,
             {
@@ -32,7 +30,7 @@ async function dbCollectionAffectedEmitter(
     }
 }
 
-class SmartyObjectClass extends mongoose.Model {
+class MagicObjectClass extends mongoose.Model {
     static linkKey(obj) {
         return `${obj._id}_${this.collection.name}`;
     }
@@ -47,7 +45,7 @@ class SmartyObjectClass extends mongoose.Model {
     }
 
     static basicDataBuilder(profile, method, baseObject = null, clearedData = {}) {
-        return (<TSmartySchema><unknown> this)
+        return (<TMagicSchema><unknown> this)
             .incomeDataModifiers(method)
             .reduce((query, fn) => Object.assign(query, fn(this, profile, baseObject, clearedData)), {});
     }
@@ -67,7 +65,7 @@ class SmartyObjectClass extends mongoose.Model {
     }
 
     static getPublicName(): string {
-        return (<TSmartySchema><unknown> this).is('PublicInterface')
+        return (<TMagicSchema><unknown> this).is('PublicInterface')
             ? (<TPublicInterfaceStatic><unknown> this).getApiPrefix()
             : this.collection.name;
     }
@@ -92,7 +90,7 @@ class SmartyObjectClass extends mongoose.Model {
         return this.constructor;
     }
 
-    async updateField<T extends SmartyObjectClass>(idsList, profile, action, field, custom = {}, sendDbca = true) {
+    async updateField<T extends MagicObjectClass>(idsList, profile, action, field, custom = {}, sendDbca = true) {
         if (idsList.length > 0) {
             const fields = Array.isArray(field) ? field : [field];
 
@@ -126,7 +124,6 @@ class SmartyObjectClass extends mongoose.Model {
 
             await this.updateOne(query);
 
-            // TODO: заменить на алгоритм с использованием lodash
             const [data] = await (<T><unknown> this.constructor).find({ _id: this._id })
                 .limit(1)
                 .select(fields.join(' '))
@@ -188,7 +185,7 @@ class SmartyObjectClass extends mongoose.Model {
     async incrementObjectIndex() {
         if (this.objIndex === null) {
             this.set({
-                objIndex: await SmartyObjectClass.incrementObjectIndex(this.is('WsId') ? this._wsId : null, 1)
+                objIndex: await MagicObjectClass.incrementObjectIndex(this.is('WsId') ? this._wsId : null, 1)
             });
         }
 
@@ -204,15 +201,15 @@ interface IRawData {
   opId?: string;
 }
 
-const SmartyObject = (schema: SmartySchema, options: IOptions = {}) => {
+const MagicObject = (schema: MagicSchema, options: IOptions = {}) => {
     const { emitDbca = ['create', 'update', 'delete'], hideOnRemove = true } = options;
 
-    schema.loadClass(SmartyObjectClass, false);
+    schema.loadClass(MagicObjectClass, false);
 
     schema.add({
         _id: {
-            type: SmartySchema.Types.ObjectId,
-            default: SmartySchema.ObjectId,
+            type: MagicSchema.Types.ObjectId,
+            default: MagicSchema.ObjectId,
             description: 'Идентификатор объекта в коллекции.',
             protected: true,
             public: true,
@@ -253,11 +250,10 @@ const SmartyObject = (schema: SmartySchema, options: IOptions = {}) => {
         }
     });
 
-    schema.onModelEvent('instance-pre-save', async function (profile, instance: SmartyObjectClass) {
+    schema.onModelEvent('instance-pre-save', async function (profile, instance: MagicObjectClass) {
         const time = Date.now();
 
         if (!instance.isNewObject()) {
-            // Инкрементируем версию для синхронизации.
             instance.__rev += 1;
             instance.set({ _updatedOn: time });
             instance.addAffectedField(...this.modifiedPaths());
@@ -297,6 +293,6 @@ const SmartyObject = (schema: SmartySchema, options: IOptions = {}) => {
     }
 };
 
-export default SmartyObject;
-export type TSmartyObject = SmartyObjectClass;
-export type TSmartyObjectStatic = typeof SmartyObjectClass;
+export default MagicObject;
+export type TMagicObject = MagicObjectClass;
+export type TMagicObjectStatic = typeof MagicObjectClass;

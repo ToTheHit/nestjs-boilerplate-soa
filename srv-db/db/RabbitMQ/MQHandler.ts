@@ -161,7 +161,6 @@ class RabbitMQHandler extends EventEmitter {
 
                         this.status = 'online';
                         this.isReportSended = false;
-                        // await hook('mq connect');
 
                         logger.info('RabbitMQ connected');
 
@@ -172,10 +171,6 @@ class RabbitMQHandler extends EventEmitter {
                         this.status = 'connecting';
 
                         if (!this.isReportSended) {
-                            // await hook(
-                            //     'mq error: connectFailed',
-                            //     typeof error === 'object' ? JSON.stringify(error.err) : error
-                            // );
                             logger.error('RabbitMQ connect failed: %s', error);
                             this.isReportSended = true;
                         }
@@ -185,7 +180,6 @@ class RabbitMQHandler extends EventEmitter {
                         this.status = 'connecting';
 
                         if (!this.isReportSended) {
-                            // await hook('mq error: disconnect', 'connection closed');
                             logger.error('RabbitMQ disconnected');
 
                             this.isReportSended = true;
@@ -195,7 +189,6 @@ class RabbitMQHandler extends EventEmitter {
                     if (!this.isReportSended) {
                         logger.error('RabbitMQ connection error: %s', error);
 
-                        // hook('mq error', typeof error === 'object' ? JSON.stringify(error.err) : error);
                         this.isReportSended = true;
                     }
                 }

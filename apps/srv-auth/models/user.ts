@@ -1,4 +1,4 @@
-import SmartySchema from '../../../srv-db/models/SmartySchema';
+import MagicSchema from '../../../srv-db/models/MagicSchema';
 import PublicObject, {
     IOptions, TPublicObject, TPublicObjectStatic
 } from '../../../srv-db/models/plugins/PublicObject';
@@ -11,10 +11,10 @@ import ProfileWithAccess, {
     TProfileWithAccessStatic
 } from '../../../srv-db/models/plugins/ProfileWithAccess';
 import emitBgEvent from '../../../srv-db/lib/emitBgEvent';
-import SmartyModel from '../../../srv-db/models/SmartyModel';
-import SmartyDocument from '../../../srv-db/models/SmartyDocument';
+import MagicModel from '../../../srv-db/models/MagicModel';
+import MagicDocument from '../../../srv-db/models/MagicDocument';
 
-class UserClass extends SmartyModel {
+class UserClass extends MagicModel {
     async getUser() {
         return this;
     }
@@ -93,10 +93,10 @@ class UserClass extends SmartyModel {
     }
 }
 
-const UserSchema = new SmartySchema(
+const UserSchema = new MagicSchema(
     {
         _lastWs: {
-            type: SmartySchema.Types.ObjectId,
+            type: MagicSchema.Types.ObjectId,
             ref: 'workspace',
             protected: true,
             default: null
@@ -170,7 +170,7 @@ export type TUser = UserClass &
     TProfileWithToken &
     TPublicObject &
     TAccountPlugin &
-    SmartyDocument;
+    MagicDocument;
 export type TUserStatic = typeof UserClass &
     TProfileWithAccessStatic &
     TWithEmailStatic &

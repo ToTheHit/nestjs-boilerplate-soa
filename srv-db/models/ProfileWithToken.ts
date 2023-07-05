@@ -1,13 +1,13 @@
-import SmartySchema from './SmartySchema';
+import MagicSchema from './MagicSchema';
 
 import sha1 from '../../lib/utils/sha1';
-import SmartyModel from './SmartyModel';
+import MagicModel from './MagicModel';
 import * as token from '../../lib/utils/token';
 
 const buildSalt = () => sha1(`${Math.random()}.${Date.now()}.${process.pid}`, '');
 const requestMetaHolder = new WeakMap();
 
-class ProfileWithTokenClass extends SmartyModel {
+class ProfileWithTokenClass extends MagicModel {
     getAuthToken(sid, ttl, misc = {}) {
         return token.sign({
             sid,
@@ -51,18 +51,6 @@ class ProfileWithTokenClass extends SmartyModel {
         return this.getMeta().platform;
     }
 
-    // async checkRequestQuotas(sessionId) {
-    //     const quotaCounterKey = `${sessionId}_requests_quota`;
-    //
-    //     const requestsMade = await redis.incr(quotaCounterKey);
-    //
-    //     if (requestsMade === 1) {
-    //         await redis.expire(quotaCounterKey, this.requestQuotaInterval);
-    //     }
-    //
-    //     return requestsMade < this.requestQuotaNumber;
-    // }
-
     async blockUnblock(profile, blockStatus = false, blockReason = '') {
         this.set({
             isBlocked: blockStatus,
@@ -77,7 +65,7 @@ interface IOptions {
     requestQuotaInterval?: number | null;
     requestQuotaNumber?: number | null;
 }
-const ProfileWithToken = (schema: SmartySchema, options: IOptions = {}) => {
+const ProfileWithToken = (schema: MagicSchema, options: IOptions = {}) => {
     const {
         requestQuotaInterval = null,
         requestQuotaNumber = null
@@ -107,7 +95,7 @@ const ProfileWithToken = (schema: SmartySchema, options: IOptions = {}) => {
             search: { index: 'filter' }
         },
         _blockedBy: {
-            type: SmartySchema.Types.ObjectId,
+            type: MagicSchema.Types.ObjectId,
             ref: 'user',
             default: null
         },

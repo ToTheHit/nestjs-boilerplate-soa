@@ -1,25 +1,16 @@
-import SmartySchema from '../SmartySchema';
-import SmartyModel from '../SmartyModel';
+import MagicSchema from '../MagicSchema';
+import MagicModel from '../MagicModel';
 import { emailRegexp } from '../../lib/regexps';
 
 const defaults = Symbol('defaults');
 
-class EmailController extends SmartyModel {
+class EmailController extends MagicModel {
     static get needConfirmationEmail() {
         return this.schema[defaults].needConfirmation;
     }
 
-    // async setEmailForConfirm(email) {
-    //     this.set({
-    //         lastEmail: email
-    //     });
-    //
-    //     await this.save();
-    //     await this.constructor.dbcaUpdate(this._id, ['lastEmail']);
-    // }
-
     async confirmEmail(email) {
-        const Employee = SmartySchema.model('employee');
+        const Employee = MagicSchema.model('employee');
         const employee = await Employee.findOne({ _user: this._id });
 
         const promises = [];
@@ -41,7 +32,7 @@ interface IOptions {
     haveController?: boolean;
     haveAdditional?: boolean;
 }
-const WithEmail = (schema: SmartySchema, options: IOptions = {}) => {
+const WithEmail = (schema: MagicSchema, options: IOptions = {}) => {
     const {
         validateEmail = true,
         needConfirmation = false,

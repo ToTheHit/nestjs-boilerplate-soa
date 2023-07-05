@@ -26,7 +26,7 @@ import {
     isFunction,
     merge
 } from 'lodash';
-import SmartySchema from '../../srv-db/models/SmartySchema';
+import MagicSchema from '../../srv-db/models/MagicSchema';
 
 export const reduceToObject = (list, fn, init = {}) => {
     let result = init;
@@ -44,11 +44,11 @@ const otherOperators = ['$in', '$all'];
 function getObjectKeysWithValuesByObject(o, prefix = '', join = false) {
     return Object.keys(o).reduce((acc, key) => {
         const defaultValue =
-      typeof o[key] === 'string' && SmartySchema.ObjectId.isValidStrict(o[key])
-          ? new SmartySchema.ObjectId(o[key])
+      typeof o[key] === 'string' && MagicSchema.ObjectId.isValidStrict(o[key])
+          ? new MagicSchema.ObjectId(o[key])
           : o[key];
 
-        if (Object(o[key]) === o[key] && !Array.isArray(o[key]) && !SmartySchema.ObjectId.isValidStrict(o[key])) {
+        if (Object(o[key]) === o[key] && !Array.isArray(o[key]) && !MagicSchema.ObjectId.isValidStrict(o[key])) {
             Object.assign(acc, {
                 ...getObjectKeysWithValuesByObject(o[key], `${prefix}${prefix.length > 0 ? '.' : ''}${key}`, join)
             });
@@ -131,8 +131,8 @@ function getObjectsDiff(original = {}, target = {}) {
                 result[key] = target[key];
             }
         } else if (
-            SmartySchema.ObjectId.isValidStrict(target[key]) ||
-            SmartySchema.ObjectId.isValidStrict(original[key])
+            MagicSchema.ObjectId.isValidStrict(target[key]) ||
+            MagicSchema.ObjectId.isValidStrict(original[key])
         ) {
             if (`${target[key]}` !== `${original[key]}`) {
                 result[key] = target[key];

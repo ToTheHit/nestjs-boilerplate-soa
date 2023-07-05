@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import SmartySchema from '../SmartySchema';
+import MagicSchema from '../MagicSchema';
 import ProfilePlugin from './ProfilePlugin';
 
 // eslint-disable-next-line no-use-before-define
@@ -11,11 +11,10 @@ class ProfileHumanClass extends mongoose.Model<ProfileHumanClass> {
         );
     }
 }
-function ProfileHuman(schema: SmartySchema, options = {}) {
+function ProfileHuman(schema: MagicSchema, options = {}) {
     Object.assign(options, { validateEmail: true });
 
     schema.plugin(ProfilePlugin, options);
-    // schema.plugin(WithAvatar);
 
     schema.add({
         isOnline: {

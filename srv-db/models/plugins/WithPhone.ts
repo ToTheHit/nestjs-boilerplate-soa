@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import SmartySchema from '../SmartySchema';
+import MagicSchema from '../MagicSchema';
 import { get } from '../../../lib/utils/fn';
 import { ValidationError } from '../../../lib/errors';
 
@@ -11,7 +11,7 @@ const PT_OTHER = 4;
 
 const defaults = { type: PT_MOBILE, number: '' };
 
-const PhoneSchema = new SmartySchema({
+const PhoneSchema = new MagicSchema({
     type: {
         $type: Number,
         description: 'Тип телефона, 0 - Mobile, 1 - Work, 2 - Home, 3 - Fax, 4 - Other',
@@ -62,7 +62,7 @@ interface IOptions {
     isPhoneProtected?: boolean;
     trim?: boolean
 }
-const WithPhone = (schema: SmartySchema, options: IOptions = {}) => {
+const WithPhone = (schema: MagicSchema, options: IOptions = {}) => {
     const { haveAdditional = true, isPhoneProtected = false, trim = true } = options;
 
     schema.add({

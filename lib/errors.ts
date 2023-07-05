@@ -1,5 +1,3 @@
-// https://github.com/joyent/node-verror
-
 import axios from 'axios';
 import { MongoError } from 'mongodb';
 import mongoose from 'mongoose';

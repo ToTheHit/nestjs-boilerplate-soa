@@ -1,5 +1,5 @@
 import RequestResult from './RequestResult';
-import SmartySchema from '../../../../srv-db/models/SmartySchema';
+import MagicSchema from '../../../../srv-db/models/MagicSchema';
 
 class AnswerWithSchema extends RequestResult {
     private discriminator: any;
@@ -15,9 +15,9 @@ class AnswerWithSchema extends RequestResult {
 
         this.discriminator = discriminator;
 
-        this.schemas = (!Array.isArray(fields) ? [fields] : fields).map(schema => (schema instanceof SmartySchema
+        this.schemas = (!Array.isArray(fields) ? [fields] : fields).map(schema => (schema instanceof MagicSchema
             ? schema
-            : new SmartySchema(typeof fields === 'object' && fields !== null && !Array.isArray(fields)
+            : new MagicSchema(typeof fields === 'object' && fields !== null && !Array.isArray(fields)
                 ? fields
                 : {}, { _id: false, id: false, versionKey: false })));
     }

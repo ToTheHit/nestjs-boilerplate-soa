@@ -10,7 +10,7 @@ const logger = loggerRaw('REDIS');
 const connector = () => (process.env.NODE_ENV !== 'test' ? Redis : RedisMock);
 const connections = new Set();
 
-class SmartyRedis extends connector() {
+class MagicRedis extends connector() {
     private messagesInProcess: number;
 
     public isReportSended: boolean;
@@ -31,14 +31,14 @@ class SmartyRedis extends connector() {
         const promises = [];
 
         for (const connection of connections) {
-            promises.push((<SmartyRedis> connection).shutdown());
+            promises.push((<MagicRedis> connection).shutdown());
         }
         await Promise.all(promises);
         logger.info('all connections closed');
     }
 
     duplicate(override = {}) {
-        return new SmartyRedis({ ...cloneDeep(this.options), ...override });
+        return new MagicRedis({ ...cloneDeep(this.options), ...override });
     }
 
     clearListeners(event) {
@@ -87,7 +87,7 @@ class SmartyRedis extends connector() {
     }
 }
 
-const redisClient = new SmartyRedis({
+const redisClient = new MagicRedis({
     ...redis,
     reconnectOnError(e) {
         logger.error(e, 'connection error');

@@ -1,8 +1,6 @@
 // eslint-disable-next-line max-classes-per-file
 import mongoose, { Schema, Types } from 'mongoose';
-import { BadRequestException } from '@nestjs/common';
 import { ForbiddenError, NotFoundError } from '../../lib/errors';
-import SmartyDocument from './SmartyDocument';
 
 const _plugins = new WeakMap();
 const _pluginsConnected = new WeakMap();
@@ -170,7 +168,7 @@ class MetaData {
     }
 }
 
-class SmartySchema extends Schema {
+class MagicSchema extends Schema {
     private Model: mongoose.Model<any>;
 
     private tree: any;
@@ -245,14 +243,13 @@ class SmartySchema extends Schema {
         }
 
         if (collectionName === 'ws' || collectionName === 'workspaces') {
-            return SmartySchema.model('workspace');
+            return MagicSchema.model('workspace');
         }
 
-        // TODO: переделать на параметр модели
-        const prefixed = useApiPrefix === true && !(collectionName === 'invites' || collectionName === 'notifications');
+        const prefixed = useApiPrefix === true;
 
-        for (const modelName of Object.keys(SmartySchema.models)) {
-            const Model = SmartySchema.model(modelName);
+        for (const modelName of Object.keys(MagicSchema.models)) {
+            const Model = MagicSchema.model(modelName);
 
             const modelIsCorrect = !prefixed
                 ? Model.collection.name === collectionName
@@ -262,7 +259,6 @@ class SmartySchema extends Schema {
                 return Model;
             }
         }
-        // throw new BadRequestException('Something bad happened', { cause: new Error(), description: 'Some error description' });
         throw new NotFoundError(`Model for collection ${collectionName} not found`);
     }
 
@@ -275,14 +271,12 @@ class SmartySchema extends Schema {
     }
 
     incomeDataModifiers(action) {
-        // TODO: move to controller
         const idm = _dataModif.get(this);
 
         return idm[action] || [];
     }
 
     modifyIncomeData(actionType, modifier) {
-    // TODO: move to controller
         const actionList = Array.isArray(actionType) ? actionType : [actionType];
 
         const idm = _dataModif.get(this);
@@ -329,7 +323,7 @@ class SmartySchema extends Schema {
           typeof value.default === 'function' ? value.default() : value.default;
 
                 Object.assign(result, {
-                    [key]: def instanceof SmartySchema ? def.defaultSchemaData() : def
+                    [key]: def instanceof MagicSchema ? def.defaultSchemaData() : def
                 });
             }
 
@@ -340,7 +334,7 @@ class SmartySchema extends Schema {
     static ObjectId = ObjectId;
 }
 
-export default SmartySchema;
-export type TSmartySchemaStatic = typeof MetaData & typeof SmartySchema;
-export type TSmartySchema = SmartySchema & MetaData;
+export default MagicSchema;
+export type TMagicSchemaStatic = typeof MetaData & typeof MagicSchema;
+export type TMagicSchema = MagicSchema & MetaData;
 export type TObjectId = ObjectId;

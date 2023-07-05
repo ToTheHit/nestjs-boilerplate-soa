@@ -3,7 +3,7 @@ import {
 } from '@nestjs/common';
 import { map } from 'rxjs';
 import { Reflector } from '@nestjs/core';
-import SmartySchema from '../../../srv-db/models/SmartySchema';
+import MagicSchema from '../../../srv-db/models/MagicSchema';
 import {
     AnswerBinary,
     AnswerEmpty,
@@ -45,7 +45,7 @@ export default ignoreDeletion => {
                 ? { _wsId }
                 : {};
 
-            const Model = SmartySchema.modelByCollectionName(collectionName, true);
+            const Model = MagicSchema.modelByCollectionName(collectionName, true);
 
             req.currentObject = await (_shortId
                 ? Model.getObjectByShortId(req.profile, _shortId, { ignoreDeletion, queryModif })
