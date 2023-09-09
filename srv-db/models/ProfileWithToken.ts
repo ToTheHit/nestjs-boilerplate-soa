@@ -8,7 +8,7 @@ const buildSalt = () => sha1(`${Math.random()}.${Date.now()}.${process.pid}`, ''
 const requestMetaHolder = new WeakMap();
 
 class ProfileWithTokenClass extends MagicModel {
-    getAuthToken(sid, ttl, misc = {}) {
+    getAuthToken(sid: string, ttl: number, misc = {}) {
         return token.sign({
             sid,
             id: `${this._id}`,
@@ -39,7 +39,7 @@ class ProfileWithTokenClass extends MagicModel {
         return $set.sessionVersion;
     }
 
-    setMeta(requestMeta) {
+    setMeta(requestMeta: any) {
         requestMetaHolder.set(this, requestMeta);
     }
 

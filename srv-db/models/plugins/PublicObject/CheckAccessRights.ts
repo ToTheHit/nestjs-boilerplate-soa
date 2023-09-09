@@ -1,20 +1,21 @@
 import memo from '../../../../lib/utils/memo';
 import { AccessDenied } from '../../../../lib/errors';
 import { reduceToObject } from '../../../../lib/utils/fn';
-import { ACCESS } from '../../../lib/constants';
-import MagicSchema, { TMagicSchema, TMagicSchemaStatic } from '../../MagicSchema';
+import { ACCESS, TMethod } from '../../../lib/constants';
+import MagicSchema, { TMagicSchema, TMagicSchemaStatic, TObjectId } from '../../MagicSchema';
 import isDeleted from '../../../lib/isDeleted';
+import EmployeeRelatedFields from '../EmployeeRelatedFields';
+import MagicModel, { TMagicModel } from '../../MagicModel';
+
 import { TPublicInterfaceStatic } from './PublicInterface';
 import { TMagicObject } from '../MagicObject';
 import { IGetterQuery } from '../../../../lib/interface';
-import EmployeeRelatedFields from '../EmployeeRelatedFields';
-import MagicModel from '../../MagicModel';
 
 const defaults = Symbol('defaults');
 
-const getProfileRightsFn = (profile, Model, instance) => Model.schema[defaults].getAccessRights.call(Model, profile, Model.schema[defaults].rightsBuilder, instance);
+const getProfileRightsFn = (profile: any, Model: TMagicModel, instance: any) => Model.schema[defaults].getAccessRights.call(Model, profile, Model.schema[defaults].rightsBuilder, instance);
 
-const accessQueryBuilderFn = async (profile, Model, method, baseObject) => {
+const accessQueryBuilderFn = async (profile: any, Model: TMagicModel, method: string, baseObject: any | null) => {
     const rights = await Model.getRightsObject(profile);
 
     return Model.schema[defaults].queryModifier.call(Model, profile, rights, method, baseObject);
@@ -28,7 +29,7 @@ class CheckAccessRightsClass extends MagicModel {
         return this.schema[defaults].rightsField || this.collection.name;
     }
 
-    static async getRightsObject(profile, object, method) {
+    static async getRightsObject(profile: any, object: any, method: TMethod) {
         if (!profile) {
             return {};
         }
@@ -40,7 +41,7 @@ class CheckAccessRightsClass extends MagicModel {
         return getProfileRights(profile, this, object);
     }
 
-    static async buildAccessQuery(profile, method, baseObject = null) {
+    static async buildAccessQuery(profile: any, method: TMethod, baseObject: any = null) {
         return accessQueryBuilder(profile, this, method, baseObject);
     }
 
@@ -49,8 +50,8 @@ class CheckAccessRightsClass extends MagicModel {
     }
 
     static async getObjectsIdsWithRightsIgnore(
-        profile,
-        objectsIdsList,
+        profile: any,
+        objectsIdsList: TObjectId[] | string[],
         getNotAllowedObjects = false,
         ignoreDeletion = false,
         queryModif = {}
@@ -100,8 +101,8 @@ class CheckAccessRightsClass extends MagicModel {
     }
 
     static async getObjectsListWithRightsIgnore(
-        profile,
-        objectsIdsList,
+        profile: any,
+        objectsIdsList: TObjectId[] | string[],
         baseObject = null,
         getNotAllowedObjects = false,
         ignoreDeletion = false,
@@ -194,7 +195,7 @@ class CheckAccessRightsClass extends MagicModel {
         return result;
     }
 
-    async getPermittedProfiles(idsOnly = false, customData = {}, _wsId = null) {
+    async getPermittedProfiles(idsOnly = false, customData = {}, _wsId: TObjectId = null) {
         const profiles = await this.getPermittedProfilesByIds(
             await this.schema[defaults].getPermittedProfiles.call(this, customData),
             _wsId
@@ -203,7 +204,7 @@ class CheckAccessRightsClass extends MagicModel {
         return idsOnly ? profiles.map(({ _id }) => _id) : profiles;
     }
 
-    async checkAccessToMethod(profile, method) {
+    async checkAccessToMethod(profile: any, method: TMethod) {
         const rights = await (<CheckAccessRightsClass><unknown> this.constructor).getRightsObject(profile, this, method);
 
         return (<CheckAccessRightsClass><unknown> this.constructor).schema[defaults].accessChecker.call(
@@ -214,7 +215,7 @@ class CheckAccessRightsClass extends MagicModel {
         );
     }
 
-    async getPermittedProfilesByIds(profilesIds, _wsId = null) {
+    async getPermittedProfilesByIds(profilesIds: TObjectId[], _wsId: TObjectId = null) {
         if (profilesIds.length === 0) {
             return [];
         }
@@ -240,7 +241,7 @@ class CheckAccessRightsClass extends MagicModel {
     }
 }
 
-async function getAccessRightsDefaults(profile, rightsBuilder) {
+async function getAccessRightsDefaults(profile: any, rightsBuilder) {
     const rightsField = this.getRightsFieldName();
     const rightsList = await profile.getProfileAccessRightsList();
 
@@ -260,7 +261,7 @@ async function getAccessRightsDefaults(profile, rightsBuilder) {
 export interface IOptions {
   getPermittedProfiles?: () => Promise<any>;
   accessChecker?: (employee: any, rightsObject: any, method: string) => Promise<boolean>;
-  queryModifier?: (employee, rightsObject, baseObject) => any;
+  queryModifier?: (employee: any, rightsObject: any, baseObject: any) => any;
   getAccessRights?: () => any;
   rightsBuilder?: (result, rights) => any;
   fieldALLOWED?: {

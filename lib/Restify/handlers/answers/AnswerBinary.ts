@@ -3,7 +3,7 @@ import RequestResult from './RequestResult';
 class AnswerBinary extends RequestResult {
     private contentType: string; // TODO: add enum of allowed types
 
-    constructor(contentType) {
+    constructor(contentType: string) {
         super();
 
         this.contentType = contentType;

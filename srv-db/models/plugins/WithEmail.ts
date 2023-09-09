@@ -1,4 +1,4 @@
-import MagicSchema from '../MagicSchema';
+import MagicSchema, { TMagicSchema } from '../MagicSchema';
 import MagicModel from '../MagicModel';
 import { emailRegexp } from '../../lib/regexps';
 
@@ -9,7 +9,7 @@ class EmailController extends MagicModel {
         return this.schema[defaults].needConfirmation;
     }
 
-    async confirmEmail(email) {
+    async confirmEmail(email: string) {
         const Employee = MagicSchema.model('employee');
         const employee = await Employee.findOne({ _user: this._id });
 
@@ -32,7 +32,7 @@ interface IOptions {
     haveController?: boolean;
     haveAdditional?: boolean;
 }
-const WithEmail = (schema: MagicSchema, options: IOptions = {}) => {
+const WithEmail = (schema: TMagicSchema, options: IOptions = {}) => {
     const {
         validateEmail = true,
         needConfirmation = false,

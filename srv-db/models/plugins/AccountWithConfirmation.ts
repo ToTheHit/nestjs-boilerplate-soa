@@ -1,4 +1,4 @@
-import MagicSchema, { TMagicSchemaStatic } from '../MagicSchema';
+import { TMagicSchema, TMagicSchemaStatic, TObjectId } from '../MagicSchema';
 import { NotAcceptable, ValidationError } from '../../../lib/errors';
 import emitBgEvent from '../../lib/emitBgEvent';
 import MagicModel from '../MagicModel';
@@ -13,7 +13,7 @@ class AccountWithConfirmationClass extends MagicModel {
         CONFIRMED
     };
 
-    static async getConfirmedIds(idsList, customQuery = {}) {
+    static async getConfirmedIds(idsList: TObjectId[], customQuery = {}) {
         return idsList.length === 0
             ? []
             : this.find({
@@ -29,7 +29,7 @@ class AccountWithConfirmationClass extends MagicModel {
         return this.emailConfirmedStatus === CONFIRMED;
     }
 
-    async confirmEmail(email, emailConfirmedStatus = CONFIRMED) {
+    async confirmEmail(email: string, emailConfirmedStatus: typeof UNCONFIRMED | typeof CONFIRMED = CONFIRMED) {
         const sendNotif = this.emailConfirmedStatus === UNCONFIRMED && emailConfirmedStatus !== UNCONFIRMED;
 
         const oldStatus = this.emailConfirmedStatus;
@@ -63,7 +63,7 @@ class AccountWithConfirmationClass extends MagicModel {
         await Promise.all(promises);
     }
 
-    async checkEmailConfirmationAllowed(email) {
+    async checkEmailConfirmationAllowed(email: string) {
         const emailDupCount = await (<MagicModel> this.model())
             .countDocuments({ email, emailConfirmedStatus: CONFIRMED });
 
@@ -74,13 +74,13 @@ class AccountWithConfirmationClass extends MagicModel {
         this.checkEmailChangeAllowed(email);
     }
 
-    checkEmailChangeAllowed(email) {
+    checkEmailChangeAllowed(email: string) {
         if (this.emailConfirmedStatus === this.model().CONFIRM_TYPES.CONFIRMED && this.email === email) {
             throw new ValidationError('emailConfirmed');
         }
     }
 
-    async setEmailForConfirm(email) {
+    async setEmailForConfirm(email: string) {
         this.set({
             lastEmail: email
         });
@@ -89,7 +89,7 @@ class AccountWithConfirmationClass extends MagicModel {
         await this.model().dbcaUpdate(this._id, ['lastEmail']);
     }
 }
-function AccountWithConfirmation(schema: MagicSchema) {
+function AccountWithConfirmation(schema: TMagicSchema) {
     schema.add({
         emailConfirmedStatus: {
             enum: [

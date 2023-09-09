@@ -1,6 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
 import mongoose, { Schema, Types } from 'mongoose';
 import { ForbiddenError, NotFoundError } from '../../lib/errors';
+import { TMagicModel } from './MagicModel';
 
 const _plugins = new WeakMap();
 const _pluginsConnected = new WeakMap();
@@ -219,11 +220,11 @@ class MagicSchema extends Schema {
         return this;
     }
 
-    loadClass(cls, virtualsOnly) {
+    loadClass(cls: TMagicModel, virtualsOnly?: boolean) {
         return super.loadClass(cls, virtualsOnly);
     }
 
-    static model(modelName) {
+    static model(modelName: string) {
         const Model = _models.get(modelName);
 
         if (!Model) {
@@ -237,7 +238,7 @@ class MagicSchema extends Schema {
         return mongoose.models;
     }
 
-    static modelByCollectionName(collectionName, useApiPrefix = false) {
+    static modelByCollectionName(collectionName: string, useApiPrefix = false) {
         if (!collectionName) {
             throw new ForbiddenError('collectionName required');
         }

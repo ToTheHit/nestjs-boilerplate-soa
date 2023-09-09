@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { ServerError, ValidationError } from '../../../lib/errors';
+import { TMagicSchema } from '../MagicSchema';
 
 const uniqIds = new Set();
 const defaults = Symbol('defaults');
@@ -18,7 +19,7 @@ class ShortIdClass extends mongoose.Model<ShortIdClass> {
         return this.schema[defaults].prefix;
     }
 
-    static findByShortId(shortIdRaw, ignoreDeletion = false) {
+    static findByShortId(shortIdRaw: string, ignoreDeletion = false) {
         const shortId = parseInt(shortIdRaw, 10);
         const { idField } = this.schema[defaults];
 
@@ -41,7 +42,7 @@ class ShortIdClass extends mongoose.Model<ShortIdClass> {
     }
 }
 
-function ShortId(schema, options: IOptions) {
+function ShortId(schema: TMagicSchema, options: IOptions) {
     const {
         prefix,
         idField = 'shortId',

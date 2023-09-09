@@ -19,7 +19,7 @@ class UserClass extends MagicModel {
         return this;
     }
 
-    async systemEvent(type, data = {}) {
+    async systemEvent(type: string, data = {}) {
         await emitBgEvent.sendEvent(type, {
             time: Date.now(),
             eventData: data,
@@ -28,7 +28,7 @@ class UserClass extends MagicModel {
         }, 'system-events');
     }
 
-    async delaySystemEvent(type, delay, data = {}) {
+    async delaySystemEvent(type: string, delay: number, data = {}) {
         await emitBgEvent.sendDelayedEvent(
             this._id,
             type,
@@ -43,11 +43,11 @@ class UserClass extends MagicModel {
         );
     }
 
-    async clearDelayedSystemEvent(type) {
+    async clearDelayedSystemEvent(type: string) {
         await emitBgEvent.clearDelayedEvent(this._id, type);
     }
 
-    async makeOnline(connectionId) {
+    async makeOnline(connectionId: string) {
         const query = {
             $addToSet: { activeSocketSessions: connectionId },
             $set: { isOnline: true }
@@ -62,7 +62,7 @@ class UserClass extends MagicModel {
         return wasOffline;
     }
 
-    async tryToMakeOffline(connectionId) {
+    async tryToMakeOffline(connectionId: string) {
         await this.updateOne({ $pull: { activeSocketSessions: connectionId } });
 
         const haveConnections = await this.model().findOne({
@@ -86,10 +86,6 @@ class UserClass extends MagicModel {
         }
 
         return isOffline;
-    }
-
-    static test(data: string) {
-        return data === 'test';
     }
 }
 

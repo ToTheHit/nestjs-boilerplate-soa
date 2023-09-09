@@ -3,8 +3,12 @@ import MagicSchema from '../../../srv-db/models/MagicSchema';
 import MagicObject, { TMagicObject, TMagicObjectStatic } from '../../../srv-db/models/plugins/MagicObject';
 import MagicDocument from '../../../srv-db/models/MagicDocument';
 
+import { TUser, TUserStatic } from './user';
+
+type TPlatform = 'web' | 'ios' | 'android';
+
 class DeviceClass extends MagicModel {
-    static async getUserDevices(user, platforms) {
+    static async getUserDevices(user: TUser, platforms: Array<TPlatform>) {
         return this.find({
             _user: user._id,
             pushToken: { $exists: true, $ne: null },
@@ -14,7 +18,13 @@ class DeviceClass extends MagicModel {
             .lean();
     }
 
-    static async addDevice(user, sessionId, platform, deviceName = 'unknown', isRegDevice = false) {
+    static async addDevice(
+        user: TUser,
+        sessionId: string,
+        platform: TPlatform,
+        deviceName = 'unknown',
+        isRegDevice = false
+    ) {
         const $set = {
             platform,
             deviceName,
@@ -48,18 +58,18 @@ class DeviceClass extends MagicModel {
         }
 
         if (!user.platforms.includes(platform)) {
-            await user.constructor.updateOne({ _id: user._id }, { $addToSet: { platforms: platform } });
+            await (<TUserStatic>user.constructor).updateOne({ _id: user._id }, { $addToSet: { platforms: platform } });
         }
     }
 
-    static async removeDevice(user, sessionId) {
+    static async removeDevice(user: TUser, sessionId: string) {
         await this.updateOne(
             { sessionId, _user: user._id },
             { $set: { _deletedOn: Date.now(), isDeleted: true, _deletedBy: user._id } }
         );
     }
 
-    static async purgeDevices(user, exceptedSessionId) {
+    static async purgeDevices(user: TUser, exceptedSessionId: string) {
         const query = { _user: user._id };
 
         if (exceptedSessionId) {
@@ -81,10 +91,10 @@ class DeviceClass extends MagicModel {
             platforms.push(deviceName);
         }
 
-        await user.constructor.updateOne({ _id: user._id }, { $set: { platforms } });
+        await (<TUserStatic>user.constructor).updateOne({ _id: user._id }, { $set: { platforms } });
     }
 
-    static async getDevices(user) {
+    static async getDevices(user: TUser) {
         return this.find({ _user: user._id })
             .sort({ _createdOn: 1 });
     }

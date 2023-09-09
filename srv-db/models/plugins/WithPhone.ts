@@ -47,7 +47,7 @@ class WithPhoneClass extends mongoose.Model<WithPhoneClass> {
         [PT_FAX]: 'fax'
     };
 
-    getPhoneValue(field) {
+    getPhoneValue(field: string) {
         const phone = get(this.toJSON(), field);
 
         if (!phone) {
@@ -63,7 +63,11 @@ interface IOptions {
     trim?: boolean
 }
 const WithPhone = (schema: MagicSchema, options: IOptions = {}) => {
-    const { haveAdditional = true, isPhoneProtected = false, trim = true } = options;
+    const {
+        haveAdditional = true,
+        isPhoneProtected = false,
+        trim = true
+    } = options;
 
     schema.add({
         phone: {

@@ -2,6 +2,7 @@ import MagicSchema from '../MagicSchema';
 import MagicModel from '../MagicModel';
 import memo from '../../../lib/utils/memo';
 import { AccessDenied } from '../../../lib/errors';
+import { TMethod } from '../../lib/constants';
 
 const defaults = Symbol('defaults');
 
@@ -17,7 +18,7 @@ const getAdminRights = memo(getAdminRightsFn, 'profile getAdminRights');
 const getAccessRights = memo(getAccessRightsFn, 'profile getAccessRights');
 
 class ProfileWithAccessClass extends MagicModel {
-    async checkAccessRights(instance, method, throwError = true) {
+    async checkAccessRights(instance: any, method: TMethod, throwError = true) {
         if (typeof this.model().schema[defaults].checkAccessRights === 'function') {
             return this.model().schema[defaults].checkAccessRights.call(this, instance, method, throwError);
         }
@@ -37,7 +38,7 @@ class ProfileWithAccessClass extends MagicModel {
         return accessResult;
     }
 
-    async checkAdminRights(rightKey, throwError = false) {
+    async checkAdminRights(rightKey: string, throwError = false) {
         return this.isAdmin;
         const allowed = this.is('WithAdminRights')
             ? await getAdminRights(this, rightKey)

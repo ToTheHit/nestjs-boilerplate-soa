@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import { NotFoundError } from 'rxjs';
 
-import { TMagicObject } from '../MagicObject';
 import MagicSchema, { TMagicSchemaStatic, TObjectId, TMagicSchema } from '../../MagicSchema';
 import securedFieldsList from '../../../lib/securedFieldsList';
 import {
@@ -9,13 +8,16 @@ import {
 } from '../../../../lib/utils/fn';
 import { BadRequest, ForbiddenError, ValidationError } from '../../../../lib/errors';
 import isDeleted from '../../../lib/isDeleted';
+import MagicDocument from '../../MagicDocument';
+import MagicModel from '../../MagicModel';
+
+import { TMagicObject } from '../MagicObject';
 import { TShortId } from '../ShortId';
 import { IGetterQuery, IRequest } from '../../../../lib/interface';
-import MagicDocument from '../../MagicDocument';
 import { TCheckAccessRights } from './CheckAccessRights';
-import MagicModel from '../../MagicModel';
 import { TUser } from '../../../../apps/srv-auth/models/user';
 import { TCalculatedFields, TCalculatedFieldsStatic } from '../CalculatedFields';
+import { TMethod } from '../../../lib/constants';
 
 const disableGlobalId = Symbol('disableGlobalId');
 const defaultSortOrder = Symbol('defaultSortOrder');
@@ -28,7 +30,7 @@ const defaultSortField = Symbol('defaultSortField');
 const disableGetWholeCollection = Symbol('disableGetWholeCollection');
 const allowedAttachedFilesType = Symbol('allowedAttachedFilesType');
 
-const buildSortQuery = (sortField, sortDirection) => {
+const buildSortQuery = (sortField: string | string[], sortDirection: 'asc' | 'desc') => {
     const sortQuery = {};
 
     if (!Array.isArray(sortField)) {
@@ -51,7 +53,7 @@ const buildSortQuery = (sortField, sortDirection) => {
     return sortQuery;
 };
 
-const getCollectionsForAggregate = (sortQuery, fieldsFromOtherCollection) => {
+const getCollectionsForAggregate = (sortQuery = {}, fieldsFromOtherCollection = {}) => {
     const collections = {};
 
     if (!fieldsFromOtherCollection) {
@@ -74,7 +76,13 @@ const getCollectionsForAggregate = (sortQuery, fieldsFromOtherCollection) => {
     return null;
 };
 
-const getAggregationQuery = (dbQuery, collectionsForAggregate, sortQuery, fieldsFromOtherCollections, project = []) => {
+const getAggregationQuery = (
+    dbQuery = {},
+    collectionsForAggregate = {},
+    sortQuery = {},
+    fieldsFromOtherCollections = {},
+    project: string[] = []
+) => {
     const aggregateQuery = [];
     const sortQueryForAggregation = {};
 
@@ -144,7 +152,7 @@ class PublicInterfaceObject extends MagicModel {
         return { employee, instance };
     }
 
-    static async getEditableFields(profile, method) {
+    static async getEditableFields(profile: any, method: TMethod) {
         const securedFields = await securedFieldsList(this.schema.paths, profile, method, false);
 
         return (
@@ -158,7 +166,7 @@ class PublicInterfaceObject extends MagicModel {
         );
     }
 
-    static async getObjectsInfo(profile, objectsList, baseObject = null, query: IGetObjectsInfoQuery = {}) {
+    static async getObjectsInfo(profile: any, objectsList: any, baseObject: any = null, query: IGetObjectsInfoQuery = {}) {
         if (objectsList.list) {
             return {
                 ...objectsList,
@@ -199,7 +207,7 @@ class PublicInterfaceObject extends MagicModel {
         return Object.values(result);
     }
 
-    static async getObjectsInfoPublic(profile, objectsList, baseObject = null, query = {}) {
+    static async getObjectsInfoPublic(profile: any, objectsList: any, baseObject: any = null, query = {}) {
         const answer = await this.getObjectsInfo(profile, objectsList, baseObject, { publicInfo: true, ...query });
 
         await (<TMagicSchemaStatic><unknown> this).emitModelEvent('pre-answer', profile);
@@ -208,7 +216,7 @@ class PublicInterfaceObject extends MagicModel {
     }
 
     static async buildGetterQuery(
-        profile,
+        profile: any,
         baseObject = null,
         request = {} as IRequest | Record<string, never>,
         method = 'read',
@@ -342,7 +350,7 @@ class PublicInterfaceObject extends MagicModel {
         return this.schema[allowedAttachedFilesType];
     }
 
-    async toAnswer(profile) {
+    async toAnswer(profile: any) {
         const securedFields = await securedFieldsList((<MagicModel> this.constructor).schema.paths, profile, 'read', false);
 
         const data = this.toJSON();
@@ -350,7 +358,7 @@ class PublicInterfaceObject extends MagicModel {
         return omit(data, securedFields);
     }
 
-    async getObjectInfo(profile, fieldsToGet = []) {
+    async getObjectInfo(profile: any, fieldsToGet = []) {
         const answer = await this.toAnswer(profile);
 
         await (<TMagicSchemaStatic> this.constructor).emitModelEvent('pre-info', profile);
@@ -359,7 +367,7 @@ class PublicInterfaceObject extends MagicModel {
         return Array.isArray(fieldsToGet) && fieldsToGet.length > 0 ? pick(answer, fieldsToGet) : answer;
     }
 
-    async getObjectInfoPublic(profile, fieldsToGet = [], ignoreRights = false) {
+    async getObjectInfoPublic(profile: any, fieldsToGet: string[] = [], ignoreRights = false) {
         if (!ignoreRights) {
             await profile.checkAccessRights(this, 'read');
         }
@@ -386,7 +394,7 @@ interface IGetObjectOptions {
   queryModif?: object;
 }
 class PublicInterfaceController extends PublicInterfaceObject {
-    static async getPublicObjectByUser(user, _id) {
+    static async getPublicObjectByUser(user: TUser, _id: TObjectId) {
         if (this.schema[disableGlobalId]) {
             throw new ForbiddenError('global instance getter disabled');
         }
@@ -403,7 +411,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
         };
     }
 
-    static async getObjectLowLevel(profile, queryModif = {}, ignoreDeletion = false) {
+    static async getObjectLowLevel(profile: any, queryModif = {}, ignoreDeletion = false) {
         const query = {};
 
         Object.assign(query, queryModif, isDeleted(this, ignoreDeletion));
@@ -416,7 +424,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
         return instance;
     }
 
-    static async getObject(profile, _id, options: IGetObjectOptions = {}) {
+    static async getObject(profile: any, _id: TObjectId, options: IGetObjectOptions = {}) {
         const { ignoreDeletion = false, queryModif = {} } = options;
 
         if (profile instanceof this && !_id && profile._id.equals(_id)) {
@@ -432,7 +440,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
         return this.getObjectLowLevel(profile, queryModif, ignoreDeletion);
     }
 
-    static async getObjectByShortId(profile, shortId, options: IGetObjectOptions = {}) {
+    static async getObjectByShortId(profile: any, shortId: number | string, options: IGetObjectOptions = {}) {
         const { ignoreDeletion = false, queryModif = {} } = options;
 
         if (profile instanceof this && (!shortId || `${profile.shortId}` === `${shortId}`)) {
@@ -443,13 +451,13 @@ class PublicInterfaceController extends PublicInterfaceObject {
             throw new ValidationError('invalid shortId', { shortId });
         }
 
-        Object.assign(queryModif, { [(<TShortId> this).shortIdField()]: parseInt(shortId, 10) });
+        Object.assign(queryModif, { [(<TShortId> this).shortIdField()]: parseInt(<string> shortId, 10) });
 
         return this.getObjectLowLevel(profile, queryModif, ignoreDeletion);
     }
 
     static async getObjectsListLowLevel(
-        profile,
+        profile: any,
         request = {} as IRequest | Record<string, never>,
         queryModif = {},
         baseObject = null,
@@ -477,7 +485,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
     }
 
     static async getObjectsListByIds(
-        profile,
+        profile: any,
         ids = [],
         request = {} as IRequest | Record<string, never>,
         queryModif = {},
@@ -505,7 +513,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
     }
 
     static async getObjectsCount(
-        profile,
+        profile: any,
         request = {} as IRequest,
         queryModif: IGetterQuery = {},
         baseObject = null,
@@ -592,6 +600,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
                 objects = await this.aggregate(aggregateQuery);
                 // Удаляем системные поля, которые были нужны для сортировки
                 for (const object of objects) {
+                    // eslint-disable-next-line guard-for-in
                     for (const collection in collectionsForAggregate) {
                         delete object[`additionalFields_${collection}`];
                     }
@@ -664,6 +673,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
                 objects = await this.aggregate(aggregateQuery);
                 // Удаляем системные поля, которые были нужны для сортировки
                 for (const object of objects) {
+                    // eslint-disable-next-line guard-for-in
                     for (const collection in collectionsForAggregate) {
                         delete object[`additionalFields_${collection}`];
                     }
@@ -797,6 +807,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
         for (const rawData of request) {
             const instance = new this();
 
+            // eslint-disable-next-line no-await-in-loop
             await instance.validateRawData(profile, rawData, 'create', baseObject);
 
             instancesRaw.set(instance, rawData);
@@ -805,6 +816,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
         await (<TMagicSchemaStatic><unknown> this).emitModelEvent('collection-pre-create', profile, instancesRaw);
 
         for (const [instance, rawData] of instancesRaw) {
+            // eslint-disable-next-line no-await-in-loop
             const result = await this.createObjectLowLevel(profile, instance, rawData, baseObject);
 
             instances.push(result.toJSON());
@@ -831,12 +843,14 @@ class PublicInterfaceController extends PublicInterfaceObject {
         const instances = [];
 
         for (const instance of instancesRaw) {
+            // eslint-disable-next-line no-await-in-loop
             const dataCleared = await instance.validateRawData(profile, request, 'update', baseObject);
 
             instancesMap.set(instance, dataCleared);
         }
 
         for (const [instance, dataCleared] of instancesMap) {
+            // eslint-disable-next-line no-await-in-loop
             await instance.updateObjectLowLevel(profile, request, dataCleared, baseObject);
 
             instances.push(instance);
@@ -937,6 +951,7 @@ const getSortFieldsFromOtherCollections = fieldsObject => {
     if (fieldsObject) {
         const fields = {};
 
+        // eslint-disable-next-line guard-for-in
         for (const collection in fieldsObject) {
             for (const field of fieldsObject[collection].fields) {
                 fields[field] = collection;

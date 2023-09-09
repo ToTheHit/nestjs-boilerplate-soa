@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import MagicSchema from '../MagicSchema';
+import { TMagicSchema } from '../MagicSchema';
 import ProfilePlugin from './ProfilePlugin';
 
 // eslint-disable-next-line no-use-before-define
@@ -11,7 +11,7 @@ class ProfileHumanClass extends mongoose.Model<ProfileHumanClass> {
         );
     }
 }
-function ProfileHuman(schema: MagicSchema, options = {}) {
+function ProfileHuman(schema: TMagicSchema, options = {}) {
     Object.assign(options, { validateEmail: true });
 
     schema.plugin(ProfilePlugin, options);

@@ -1,7 +1,15 @@
 import User from '../models/user';
 import Device from '../models/device';
+import { TObjectId } from '../../../srv-db/models/MagicSchema';
 
-const bumpUserActivity = async ({ data }) => {
+export interface IBumpActivityData {
+    sessionId: string;
+    platform: string;
+    deviceName: string;
+    registration: string;
+    _user: TObjectId;
+}
+const bumpUserActivity = async ({ data }: {data: IBumpActivityData}) => {
     const {
         sessionId,
         platform,

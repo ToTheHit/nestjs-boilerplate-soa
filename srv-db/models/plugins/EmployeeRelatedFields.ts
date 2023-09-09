@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import CalculatedFields from './CalculatedFields';
+import { TMagicSchema } from '../MagicSchema';
 
 const employeeFields = Symbol('employeeFields');
 
@@ -10,7 +11,7 @@ class EmployeeRelatedFieldsClass extends mongoose.Model<EmployeeRelatedFieldsCla
     }
 }
 
-function EmployeeRelatedFields(schema, options = {}) {
+function EmployeeRelatedFields(schema: TMagicSchema, options = {}) {
     schema.plugin(CalculatedFields, { ...options, customFieldsList: employeeFields });
 
     schema.loadClass(EmployeeRelatedFieldsClass);

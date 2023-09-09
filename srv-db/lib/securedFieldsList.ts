@@ -1,17 +1,28 @@
-import mongoose, { SchemaType } from 'mongoose';
+import { SchemaType } from 'mongoose';
+import { TProfileWithAccess } from '../models/plugins/ProfileWithAccess';
+import { TMethod } from './constants';
 
-const isAdmin = (profile, params): Promise<boolean> => profile.checkAdminRights(params.admin);
+type TFieldParams = {
+    methodToAllow?: Array<TMethod> | TMethod;
+    admin?: string;
+    allowOnlyForSystem?: boolean;
+}
 
-const isMethodAllowed = (profile, params, method): boolean => (Array.isArray(params.methodToAllow) ? params.methodToAllow : [params.methodToAllow]).includes(method);
+const isAdmin = (profile: TProfileWithAccess, params: TFieldParams): Promise<boolean> => profile.checkAdminRights(params.admin);
 
-const isNotAllowed = async (method, profile, params): Promise<boolean> => {
+const isMethodAllowed = (
+    params: TFieldParams,
+    method: TMethod
+): boolean => (Array.isArray(params.methodToAllow) ? params.methodToAllow : [params.methodToAllow]).includes(method);
+
+const isNotAllowed = async (method: TMethod, profile: TProfileWithAccess, params: TFieldParams): Promise<boolean> => {
     if (typeof params === 'boolean') {
         return params === false;
     }
 
     if (typeof params === 'object') {
         if (typeof params.methodToAllow === 'string' && typeof params.admin === 'string') {
-            return isMethodAllowed(profile, params, method);
+            return isMethodAllowed(params, method);
         }
 
         if (typeof params.methodToAllow === 'string') {
@@ -19,7 +30,7 @@ const isNotAllowed = async (method, profile, params): Promise<boolean> => {
                 return profile.isSystem;
             }
 
-            return isMethodAllowed(profile, params, method);
+            return isMethodAllowed(params, method);
         }
 
         if (typeof params.admin === 'string') {
@@ -32,20 +43,21 @@ const isNotAllowed = async (method, profile, params): Promise<boolean> => {
 
 const securedFieldsList = async (
     schema: {
-    [key: string]: SchemaType;
-  },
-    profile,
-    method: 'create' | 'update' | 'delete' | 'read',
+        [key: string]: SchemaType;
+    },
+    profile: TProfileWithAccess,
+    method: TMethod,
     filterProtected = true,
     filterPrivate = true,
     filterPublic = false
 ): Promise<string[]> => (
     await Promise.all(
-        Object.keys(schema).map(async key => ((filterProtected && !(await isNotAllowed(method, profile, schema[key].options.protected))) ||
-        (filterPrivate && !(await isNotAllowed(method, profile, schema[key].options.private))) ||
-        (filterPublic && (await isNotAllowed(method, profile, schema[key].options.public)))
-            ? key
-            : null))
+        Object.keys(schema)
+            .map(async key => ((filterProtected && !(await isNotAllowed(method, profile, schema[key].options.protected))) ||
+            (filterPrivate && !(await isNotAllowed(method, profile, schema[key].options.private))) ||
+            (filterPublic && (await isNotAllowed(method, profile, schema[key].options.public)))
+                ? key
+                : null))
     )
 ).filter(key => key !== null);
 

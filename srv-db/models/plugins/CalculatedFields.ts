@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { chunkify } from '../../../lib/utils/fn';
 import { ServerError } from '../../../lib/errors';
-import MagicSchema from '../MagicSchema';
+import MagicSchema, { TMagicSchema } from '../MagicSchema';
 import MagicModel from '../MagicModel';
 
 const fieldsHandler = Symbol('calculating-fields-handlers');
@@ -68,13 +68,6 @@ class CalculatedFieldsHandler extends MagicModel {
         return result;
     }
 
-    /**
-   *
-   * @param profile
-   * @param {function} merger
-   * @param {[string]} fieldsToGet
-   * @returns {Promise<void>}
-   */
     async calculatedFieldsGetInstance(profile, merger, fieldsToGet = null) {
         const constructor = (<CalculatedFieldsHandler><unknown> this.constructor);
         const handlers = constructor.schema[fieldsHandler].concat(constructor.schema[fieldsHandlerInner]);
@@ -122,7 +115,7 @@ interface IOptions {
   inner?: boolean;
   firstPlugin: boolean;
 }
-const CalculatedFields = (schema, options: IOptions) => {
+const CalculatedFields = (schema: TMagicSchema, options: IOptions) => {
     schema[calcCache] = new WeakMap();
 
     if (!schema[fieldsHandler]) {

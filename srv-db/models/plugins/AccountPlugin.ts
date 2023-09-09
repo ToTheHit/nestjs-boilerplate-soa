@@ -24,7 +24,7 @@ interface ISignUp {
     lang?: string;
 }
 class Account extends MagicModel {
-    set password(password) {
+    set password(password: string) {
         (<TProfileWithToken><unknown> this).updateSalt();
 
         this.set({
@@ -33,7 +33,8 @@ class Account extends MagicModel {
         });
     }
 
-    static async getDataByBoundPlatform(platforms): Promise<[TObjectId]> { // TODO: проверить, используется ли
+    // TODO: проверить, используется ли
+    static async getDataByBoundPlatform(platforms: Array<'web' | 'ios' | 'android'>): Promise<TObjectId[]> {
         return (await MagicSchema.model('device').find({
             platform: { $in: platforms }
         })
@@ -42,7 +43,7 @@ class Account extends MagicModel {
             .map(({ _user }) => _user);
     }
 
-    static async signUp(options: ISignUp, userMeta): Promise<TUser> {
+    static async signUp(options: ISignUp, userMeta = {}): Promise<TUser> {
         const {
             referrer = '',
             country = '',
@@ -82,7 +83,7 @@ class Account extends MagicModel {
         return user;
     }
 
-    static async logIn(request, userMeta) {
+    static async logIn(request: any, userMeta = {}) {
         const user = await this.getAccountByLogin(request.login);
 
         if (!user) {
@@ -139,7 +140,7 @@ class Account extends MagicModel {
         return account || null;
     }
 
-    static async getAccountByToken(token, type = null, deleteAfter = true) {
+    static async getAccountByToken(token: string, type = null, deleteAfter = true) {
         const { account, tokenObject } = await this.checkTokenExisting({ token }, type);
 
         if (deleteAfter) {
@@ -151,7 +152,7 @@ class Account extends MagicModel {
         return account;
     }
 
-    static async checkTokenExisting(request, type = null, returnAccount = true) {
+    static async checkTokenExisting(request: any, type: string = null, returnAccount = true) {
         const { token } = request;
 
         if (!token) {
@@ -181,7 +182,7 @@ class Account extends MagicModel {
             : null;
     }
 
-    static async changePasswordByToken(tokenValue, newPassword) {
+    static async changePasswordByToken(tokenValue: string, newPassword: string) {
         const account = await this.getAccountByToken(
             tokenValue,
             // TODO: Добавить приведение типа
@@ -202,7 +203,7 @@ class Account extends MagicModel {
         return account;
     }
 
-    async changePasswordByCode(code, newPassword) {
+    async changePasswordByCode(code: string, newPassword: string) {
         /*
             !((
                 ['develop'].includes(process.env.NODE_ENV) || this.phone.number.slice(0, 5) === '+7000'
@@ -222,7 +223,7 @@ class Account extends MagicModel {
         return this.save();
     }
 
-    async changePasswordByRequest(oldPassword, newPassword) {
+    async changePasswordByRequest(oldPassword: string, newPassword: string) {
         if (!oldPassword || !this.checkPassword(oldPassword)) {
             throw new ValidationError('Old password is incorrect');
         }
@@ -236,7 +237,7 @@ class Account extends MagicModel {
         return this.save();
     }
 
-    async changePhoneByRequest(oldPhone, newPhone) {
+    async changePhoneByRequest(oldPhone: string, newPhone: string) {
         if (!oldPhone || this.phone !== oldPhone) {
             throw new ValidationError('Old phone is incorrect');
         }
@@ -252,11 +253,11 @@ class Account extends MagicModel {
         return this.save();
     }
 
-    static async getByAuthEmail(authEmail) {
+    static async getByAuthEmail(authEmail: string) {
         return this.findOne({ auth_email: authEmail });
     }
 
-    static async getByPhone(phone) {
+    static async getByPhone(phone: string) {
         return this.findOne({ 'phone.number': phone });
     }
 
@@ -269,7 +270,7 @@ class Account extends MagicModel {
             .map(({ platform }) => platform)));
     }
 
-    static encryptPassword(password, salt) {
+    static encryptPassword(password: string, salt: string) {
         if (!password) {
             throw new NotAcceptable('password must be specified');
         }
@@ -277,7 +278,7 @@ class Account extends MagicModel {
         return sha1(password, salt);
     }
 
-    checkPassword(password) {
+    checkPassword(password: string) {
         return this.model().encryptPassword(password, this.salt) === this.hashedPassword;
     }
 
@@ -287,7 +288,7 @@ class Account extends MagicModel {
         await this.save();
     }
 
-    async bumpActivity(sessionId, registration = false) {
+    async bumpActivity(sessionId: string, registration = false) {
         const { platform, deviceName } = this.getMeta();
 
         await emitBgEvent.sendEvent('bumpUserActivity', {
@@ -303,7 +304,7 @@ class Account extends MagicModel {
 }
 
 class AccountController extends Account {
-    static async logInLocal(request, userMeta) {
+    static async logInLocal(request: any, userMeta = {}) {
         const user = await this.logIn(request, userMeta);
 
         await user.save();
@@ -312,7 +313,7 @@ class AccountController extends Account {
         return user;
     }
 
-    static async signUpLocal(request, userMeta) {
+    static async signUpLocal(request: any, userMeta = {}) {
         const user = await this.signUp(request, userMeta);
 
         await user.save();
@@ -322,7 +323,7 @@ class AccountController extends Account {
         return user;
     }
 
-    static async activateByToken(request) {
+    static async activateByToken(request: any) {
         const { token: tokenValue = null } = request;
         const account = await this.getAccountByToken(tokenValue, MagicSchema.model('token').ACTIVATE_TYPE);
 
@@ -374,12 +375,11 @@ function AccountPlugin(schema: MagicSchema) {
     schema.loadClass(Account, false);
     schema.loadClass(AccountController, false);
 
-    schema.onModelEvent('instance-validate', async function (profile, instance, rawData) {
+    schema.onModelEvent('instance-validate', async function (profile, instance, rawData: { email: string }) {
         if (instance.isNewObject()) {
-            const accountsInCRM = await this.countDocuments({ email: rawData.email });
+            const accountsWithEmail = await this.countDocuments({ email: rawData.email });
 
-            console.log('>>> accountsInCRM', accountsInCRM);
-            if (accountsInCRM > 0) {
+            if (accountsWithEmail > 0) {
                 throw new ValidationError('emailAlreadyRegistered');
             }
 
