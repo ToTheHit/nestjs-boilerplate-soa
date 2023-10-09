@@ -14,9 +14,13 @@ export default (addRoutes = true) => {
         AuthRoutingModule
     ];
 
+    const mongodbUri = process.env.NODE_ENV !== 'test'
+        ? 'mongodb://127.0.0.1:27017/nestjs'
+        : 'mongodb://127.0.0.1:27018/nestjs';
+
     @Module({
         imports: [
-            ...MongoDB('mongodb://127.0.0.1:27017/nestjs', [
+            ...MongoDB(mongodbUri, [
                 { name: 'User', schema: UserSchema },
                 { name: 'Device', schema: DeviceSchema }
             ]),

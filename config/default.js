@@ -1,6 +1,6 @@
 module.exports = {
     rest: {
-        api: '', // api/v1
+        api: 'api/v1',
         protocol: 'http://',
         host: 'localhost:3000'
     },

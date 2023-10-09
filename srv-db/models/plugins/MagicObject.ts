@@ -1,9 +1,10 @@
 import mongoose from 'mongoose';
 
-import MagicSchema, { TMagicSchema } from '../MagicSchema';
+import MagicSchema, { TMagicSchema, TMagicSchemaStatic } from '../MagicSchema';
 import emitBgEvent from '../../lib/emitBgEvent';
 import { redisClient } from '../../db/Redis/Redis';
 import { TPublicInterfaceStatic } from './PublicObject/PublicInterface';
+import { TMagicModel } from '../MagicModel';
 
 const _affectedFields = new WeakMap();
 const SYS_KEYS = 'System:keys_ids';
@@ -143,8 +144,8 @@ class MagicObjectClass extends mongoose.Model {
         }
     }
 
-    static async incrementObjectIndex(_wsId, value = 1) {
-        const fieldName = `${this.modelName}_${_wsId || 'nows'}`;
+    static async incrementObjectIndex(Model: TMagicModel, _wsId, value = 1) {
+        const fieldName = `${Model.modelName}_${_wsId || 'nows'}`;
 
         const isExists = await redisClient.hexists(
             SYS_KEYS,
@@ -152,7 +153,7 @@ class MagicObjectClass extends mongoose.Model {
         );
 
         if (!isExists) {
-            const instance = await this.findOne(
+            const instance = await Model.findOne(
                 (_wsId
                     ? {
                         isDeleted: 'ignore',
@@ -185,7 +186,11 @@ class MagicObjectClass extends mongoose.Model {
     async incrementObjectIndex() {
         if (this.objIndex === null) {
             this.set({
-                objIndex: await MagicObjectClass.incrementObjectIndex(this.is('WsId') ? this._wsId : null, 1)
+                objIndex: await MagicObjectClass.incrementObjectIndex(
+                    this.constructor,
+                    this.is('WsId') ? this._wsId : null,
+                    1
+                )
             });
         }
 

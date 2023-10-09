@@ -242,5 +242,6 @@ class RabbitMQHandler extends EventEmitter {
     }
 }
 
-export { RabbitMQHandler };
+type TRabbitMqHandler = RabbitMQHandler;
+export { RabbitMQHandler, TRabbitMqHandler };
 export default new RabbitMQHandler(amqpURL, amqpOptions);

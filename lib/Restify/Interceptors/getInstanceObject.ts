@@ -31,7 +31,6 @@ export default ignoreDeletion => {
     @Injectable()
     class GetInstanceInterceptor<T> extends RequestWithTokenInterceptor<T> {
         async intercept(_context: ExecutionContext, next: CallHandler) {
-            console.log('>>>> BEFORE GetInstanceInterceptor');
             await super.intercept(_context, next);
             const req = _context.switchToHttp().getRequest();
             const res = _context.switchToHttp().getResponse();
@@ -54,7 +53,6 @@ export default ignoreDeletion => {
             return next.handle().pipe(
                 map(data => {
                     res.responseObject.result = data;
-                    console.log('>>> AFTER  GetInstanceInterceptor', res.responseObject);
 
                     return res.responseObject;
                 })

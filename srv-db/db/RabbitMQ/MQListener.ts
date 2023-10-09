@@ -1,18 +1,18 @@
-import mq, { RabbitMQHandler } from './MQHandler';
+import mq, { RabbitMQHandler, TRabbitMqHandler } from './MQHandler';
 import loggerRaw from '../../../lib/logger';
 import HandlersMap from './HandlersMap';
 
 const logger = loggerRaw('MQ LISTENER');
 
 class MQListener {
-    private app: any;
+    private app: TRabbitMqHandler;
 
     constructor() {
         this.app = mq;
     }
 
     async run() {
-        await this.app.connect();
+        await (<TRabbitMqHandler> this.app).connect();
     }
 
     async publish(queueName, type, message, additionalFields = {}, exchange) {
@@ -20,13 +20,18 @@ class MQListener {
     }
 
     async subscribe(queueName, handler) {
-        return this.app.subscribe(queueName, async (msg, acker) => {
-            if (handler instanceof HandlersMap) {
-                await handler.handle(msg, acker);
-            } else {
-                await handler(msg, acker);
-            }
-        });
+        return this.app.subscribe(
+            queueName,
+            async (msg, acker) => {
+                if (handler instanceof HandlersMap) {
+                    await handler.handle(msg, acker);
+                } else {
+                    await handler(msg, acker);
+                }
+            },
+            null,
+            null
+        );
     }
 
     async graceful() {
