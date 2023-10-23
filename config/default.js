@@ -2,7 +2,10 @@ module.exports = {
     rest: {
         api: 'api/v1',
         protocol: 'http://',
-        host: 'localhost:3000'
+        host: 'localhost'
+    },
+    port: {
+        auth: 3038
     },
     muteUnknownFieldsError: true,
     session: {

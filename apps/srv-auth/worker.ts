@@ -7,10 +7,9 @@ import eventsMap from './events';
 
 async function worker() {
     await redisInit();
-    const app = await NestFactory.create(AppModule(false));
+
+    await NestFactory.create(AppModule(false));
 
     await RabbitMQInit([{ queueName: 'auth-events', eventsMap }]);
-
-    await app.listen(3002);
 }
 worker();

@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
+import { port } from 'config';
+
+import { RabbitMQInit } from '@db/RabbitMQ/MQListener';
+import { redisInit } from '@db/Redis/Redis';
+import initGlobalFilters from '@restify/AllExceptionsFilter';
 
 import AppModule from './module';
-import { RabbitMQInit } from '../../srv-db/db/RabbitMQ/MQListener';
-import { redisInit } from '../../srv-db/db/Redis/Redis';
-import initGlobalFilters from '../../lib/Restify/AllExceptionsFilter';
 
 async function srv() {
     await redisInit();
@@ -14,7 +16,7 @@ async function srv() {
 
     await RabbitMQInit();
 
-    await app.listen(3001);
+    await app.listen(port.auth);
 }
 
 srv();

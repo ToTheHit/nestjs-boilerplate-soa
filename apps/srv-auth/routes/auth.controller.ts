@@ -9,13 +9,14 @@ import {
 } from '@nestjs/common';
 import * as crypto from 'crypto';
 
-import AuthRequestInterceptor from '../../../lib/Restify/Interceptors/AuthRequestInterceptor';
-import GetInstanceInfoInterceptor from '../../../lib/Restify/Interceptors/GetInstanceInfoInterceptor';
-import { emailRegexp, fullNameRegexp } from '../../../srv-db/lib/regexps';
+import AuthRequestInterceptor from '@restify/Interceptors/AuthRequestInterceptor';
+import GetInstanceInfoInterceptor from '@restify/Interceptors/GetInstanceInfoInterceptor';
+import { emailRegexp, fullNameRegexp } from '@dbLib/regexps';
+import RequestValidator from '@restify/validators/RequestValidator';
+import NoAuthRequestInterceptor from '@restify/Interceptors/NoAuthRequestInterceptor';
+import { initSessionCookies } from '@restify/lib';
+
 import User from '../models/user';
-import RequestValidator from '../../../lib/Restify/validators/RequestValidator';
-import NoAuthRequestInterceptor from '../../../lib/Restify/Interceptors/NoAuthRequestInterceptor';
-import { initSessionCookies } from '../../../lib/Restify/lib';
 
 export default () => {
     @Controller()

@@ -16,6 +16,23 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@db/*": [
+        "srv-db/db/*"
+      ],
+      "@dbLib/*": [
+        "srv-db/lib/*"
+      ],
+      "@models/*": [
+        "./srv-db/models/*"
+      ],
+      "@plugins/*": [
+        "./srv-db/models/plugins/*"
+      ],
+      "@restify/*": [
+        "./lib/Restify/*"
+      ]
+    }
   }
 }

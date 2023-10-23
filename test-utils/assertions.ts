@@ -3,8 +3,8 @@ import * as sinon from 'sinon';
 import Redis from 'ioredis-mock';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
+import RedisConnector from '@db/Redis/RedisConnector';
 import { isEqual } from '../lib/utils/fn';
-import RedisConnector from '../srv-db/db/Redis/RedisConnector';
 import loggerRaw from '../lib/logger';
 import { rabbitMQHandler } from '../srv-db/index';
 

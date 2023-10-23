@@ -1,4 +1,9 @@
 module.exports = {
+  env: {
+    mocha: true,
+    node: true,
+    jest: true
+  },
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: 'tsconfig.json',
@@ -6,24 +11,17 @@ module.exports = {
     sourceType: 'module',
   },
 
-  /**
-   * @see https://github.com/airbnb/javascript
-   */
-  env: {
-    mocha: true,
-    node: true,
-    jest: true
-  },
   plugins: [
     'node',
     '@typescript-eslint/eslint-plugin',
+    "@typescript-eslint",
+    "import"
   ],
   root: true,
   globals: {
     NodeJS: true
   },
   ignorePatterns: ['.eslintrc.js'],
-
   extends: [
     'eslint:recommended',
     'airbnb-base',
@@ -31,12 +29,9 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     'plugin:import/typescript',
   ],
-  /**
-   * @see http://eslint.org/docs/rules/
-   */
   overrides: [
     {
-      files: ['*.spec.js'],
+      files: ['*.spec.js', '*spec.ts'],
       rules: {
         'max-nested-callbacks': [1, 5],
       },
@@ -58,6 +53,7 @@ module.exports = {
         packageDir: './',
       },
     ],
+
     // # Possible Errors
     'arrow-parens': [2, 'as-needed'],
     'comma-dangle': [
@@ -71,12 +67,14 @@ module.exports = {
         requireReturnDescription: false,
       },
     ],
+
     // # Disable extension rule for ESM
     'import/extensions': ['error', 'ignorePackages', {
       js: 'off',
       mjs: 'off',
       ts: 'off'
     }],
+
     // # Best Practices
     curly: [
       2,
@@ -94,8 +92,8 @@ module.exports = {
     'no-unmodified-loop-condition': 2,
     'no-useless-call': 'error',
     'no-undef-init': 'error',
-    // # Node.js and CommonJS
 
+    // # Node.js and CommonJS
     'callback-return': 2,
     'global-require': 2,
     'handle-callback-err': 2,
@@ -109,8 +107,8 @@ module.exports = {
     'no-new-require': 2,
     'no-path-concat': 2,
     'no-sync': 2,
-    // # Styling Issues
 
+    // # Styling Issues
     'brace-style': [
       1,
       '1tbs',
@@ -179,13 +177,22 @@ module.exports = {
       },
     ],
     'sort-vars': 2,
-    // # ECMASCript 6
 
+    // # ECMASCript 6
     'arrow-body-style': 0,
     'constructor-super': 2,
     'no-this-before-super': 2,
     'prefer-arrow-callback': 0,
     'prefer-spread': 2,
     'require-yield': 2,
+  },
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      },
+      "node": true
+    }
   },
 };

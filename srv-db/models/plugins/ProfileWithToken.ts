@@ -1,8 +1,8 @@
-import MagicSchema from './MagicSchema';
+import MagicSchema from '../MagicSchema';
 
-import sha1 from '../../lib/utils/sha1';
-import MagicModel from './MagicModel';
-import * as token from '../../lib/utils/token';
+import sha1 from '../../../lib/utils/sha1';
+import MagicModel from '../MagicModel';
+import * as token from '../../../lib/utils/token';
 
 const buildSalt = () => sha1(`${Math.random()}.${Date.now()}.${process.pid}`, '');
 const requestMetaHolder = new WeakMap();

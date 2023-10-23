@@ -1,6 +1,6 @@
+import { TObjectId } from '@models/MagicSchema';
 import User from '../models/user';
 import Device from '../models/device';
-import { TObjectId } from '../../../srv-db/models/MagicSchema';
 
 export interface IBumpActivityData {
     sessionId: string;

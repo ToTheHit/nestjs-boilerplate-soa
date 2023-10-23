@@ -1,10 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 
+import initGlobalFilters from '@restify/AllExceptionsFilter';
+import { RabbitMQInit } from '@db/RabbitMQ/MQListener';
 import assertionsFn from './assertions';
 import AuthModule from '../apps/srv-auth/module';
-import initGlobalFilters from '../lib/Restify/AllExceptionsFilter';
-import { RabbitMQInit } from '../srv-db/db/RabbitMQ/MQListener';
 import AuthEvents from '../apps/srv-auth/events';
 
 // import AuthService from '../apps/srv-auth/service';

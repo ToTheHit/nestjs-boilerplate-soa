@@ -9,7 +9,7 @@ import AccountWithConfirmation, {
     TAccountWithConfirmationStatic
 } from './AccountWithConfirmation';
 import MagicModel from '../MagicModel';
-import { TProfileWithToken } from '../ProfileWithToken';
+import { TProfileWithToken } from './ProfileWithToken';
 import sha1 from '../../../lib/utils/sha1';
 import emitBgEvent from '../../lib/emitBgEvent';
 import { PublicInterfaceController } from './PublicObject/PublicInterface';

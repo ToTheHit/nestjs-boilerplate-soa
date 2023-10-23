@@ -1,7 +1,7 @@
-import MagicModel from '../../../srv-db/models/MagicModel';
-import MagicSchema from '../../../srv-db/models/MagicSchema';
-import MagicObject, { TMagicObject, TMagicObjectStatic } from '../../../srv-db/models/plugins/MagicObject';
-import MagicDocument from '../../../srv-db/models/MagicDocument';
+import MagicModel from '@models/MagicModel';
+import MagicSchema from '@models/MagicSchema';
+import MagicDocument from '@models/MagicDocument';
+import MagicObject, { TMagicObject, TMagicObjectStatic } from '@plugins/MagicObject';
 
 import { TUser, TUserStatic } from './user';
 

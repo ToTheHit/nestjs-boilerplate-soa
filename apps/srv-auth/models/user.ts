@@ -1,18 +1,18 @@
-import MagicSchema from '../../../srv-db/models/MagicSchema';
+import AccountPlugin, { TAccountPlugin, TAccountPluginStatic } from '@plugins/AccountPlugin';
+import ProfileWithToken, { TProfileWithToken, TProfileWithTokenStatic } from '@plugins/ProfileWithToken';
+import WithEmail, { TWithEmail, TWithEmailStatic } from '@plugins/WithEmail';
 import PublicObject, {
     IOptions, TPublicObject, TPublicObjectStatic
-} from '../../../srv-db/models/plugins/PublicObject';
-import { ACCESS } from '../../../srv-db/lib/constants';
-import AccountPlugin, { TAccountPlugin, TAccountPluginStatic } from '../../../srv-db/models/plugins/AccountPlugin';
-import ProfileWithToken, { TProfileWithToken, TProfileWithTokenStatic } from '../../../srv-db/models/ProfileWithToken';
-import WithEmail, { TWithEmail, TWithEmailStatic } from '../../../srv-db/models/plugins/WithEmail';
+} from '@plugins/PublicObject';
 import ProfileWithAccess, {
     TProfileWithAccess,
     TProfileWithAccessStatic
-} from '../../../srv-db/models/plugins/ProfileWithAccess';
-import emitBgEvent from '../../../srv-db/lib/emitBgEvent';
-import MagicModel from '../../../srv-db/models/MagicModel';
-import MagicDocument from '../../../srv-db/models/MagicDocument';
+} from '@plugins/ProfileWithAccess';
+import MagicSchema from '@models/MagicSchema';
+import MagicModel from '@models/MagicModel';
+import MagicDocument from '@models/MagicDocument';
+import { ACCESS } from '@dbLib/constants';
+import emitBgEvent from '@dbLib/emitBgEvent';
 
 class UserClass extends MagicModel {
     async getUser() {
@@ -65,10 +65,11 @@ class UserClass extends MagicModel {
     async tryToMakeOffline(connectionId: string) {
         await this.updateOne({ $pull: { activeSocketSessions: connectionId } });
 
-        const haveConnections = await this.model().findOne({
-            _id: this._id,
-            activeSocketSessions: { $ne: [] }
-        })
+        const haveConnections = await this.model()
+            .findOne({
+                _id: this._id,
+                activeSocketSessions: { $ne: [] }
+            })
             .select('_id')
             .lean();
 
@@ -100,7 +101,10 @@ const UserSchema = new MagicSchema(
 
         createdAt: Number
     },
-    { _id: true, id: false }
+    {
+        _id: true,
+        id: false
+    }
 );
 
 const PublicObjectOptions: IOptions = {
@@ -118,9 +122,9 @@ const PublicObjectOptions: IOptions = {
     async accessChecker(user, rights, method) {
         return (
             (!user && (method === 'create' || method === 'read')) ||
-      (user &&
-        (method === 'update' || method === 'read') &&
-        user._id.equals(this._id))
+            (user &&
+                (method === 'update' || method === 'read') &&
+                user._id.equals(this._id))
         );
     },
     fieldALLOWED: {
