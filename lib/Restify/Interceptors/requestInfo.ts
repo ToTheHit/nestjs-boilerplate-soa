@@ -1,11 +1,12 @@
 import {
     CallHandler, ExecutionContext, Injectable, NestInterceptor
 } from '@nestjs/common';
+import { Observable } from 'rxjs';
 import { session as options } from 'config';
 
-import MagicSchema from '@models/MagicSchema';
 import loggerRaw from '../../logger';
 import { getRawDataFromRequest } from '../getAccountFromRequest';
+import MagicSchema from '../../../srv-db/models/MagicSchema';
 
 const logger = loggerRaw('RequestInfoInterceptor');
 

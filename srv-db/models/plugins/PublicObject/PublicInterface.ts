@@ -1,22 +1,23 @@
 import mongoose from 'mongoose';
 import { NotFoundError } from 'rxjs';
 
-import { BadRequest, ForbiddenError, ValidationError } from '@lib/errors';
-import type { IGetterQuery, IRequest } from '@lib/interface';
-import securedFieldsList from '@dbLib/securedFieldsList';
-import isDeleted from '@dbLib/isDeleted';
-import { TMethod } from '@dbLib/constants';
-import type { TUser } from '@srvAuth/models/user';
-import { TCalculatedFields, TCalculatedFieldsStatic } from '@plugins/CalculatedFields';
+import MagicSchema, { TMagicSchemaStatic, TObjectId, TMagicSchema } from '../../MagicSchema';
+import securedFieldsList from '../../../lib/securedFieldsList';
 import {
     getObjectKeysWithValuesByObject, getObjectsDiff, omit, pick, reduceToObject
-} from '@lib/utils/fn';
-import MagicSchema, { TMagicSchemaStatic, TObjectId, TMagicSchema } from '../../MagicSchema';
+} from '../../../../lib/utils/fn';
+import { BadRequest, ForbiddenError, ValidationError } from '../../../../lib/errors';
+import isDeleted from '../../../lib/isDeleted';
 import MagicDocument from '../../MagicDocument';
 import MagicModel from '../../MagicModel';
-import type { TMagicObject } from '../MagicObject';
+
+import { TMagicObject } from '../MagicObject';
 import { TShortId } from '../ShortId';
-import type { TCheckAccessRights } from './CheckAccessRights';
+import { IGetterQuery, IRequest } from '../../../../lib/interface';
+import { TCheckAccessRights } from './CheckAccessRights';
+import { TUser } from '../../../../apps/srv-auth/models/user';
+import { TCalculatedFields, TCalculatedFieldsStatic } from '../CalculatedFields';
+import { TMethod } from '../../../lib/constants';
 
 const disableGlobalId = Symbol('disableGlobalId');
 const defaultSortOrder = Symbol('defaultSortOrder');

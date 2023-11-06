@@ -1,5 +1,5 @@
 import AccountPlugin, { TAccountPlugin, TAccountPluginStatic } from '@plugins/AccountPlugin';
-import ProfileWithToken, { TProfileWithToken, TProfileWithTokenStatic } from '@plugins/ProfileWithToken';
+import ProfileWithToken, { TProfileWithToken, TProfileWithTokenStatic } from '@models/ProfileWithToken';
 import WithEmail, { TWithEmail, TWithEmailStatic } from '@plugins/WithEmail';
 import PublicObject, {
     IOptions, TPublicObject, TPublicObjectStatic

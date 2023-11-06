@@ -26,8 +26,7 @@ import {
     isFunction,
     merge
 } from 'lodash';
-
-import MagicSchema from '@models/MagicSchema';
+import MagicSchema from '../../srv-db/models/MagicSchema';
 
 export const reduceToObject = (list, fn, init = {}) => {
     let result = init;

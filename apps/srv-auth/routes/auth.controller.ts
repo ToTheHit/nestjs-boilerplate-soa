@@ -1,5 +1,6 @@
 import {
     Body,
+    Query,
     Controller,
     Get,
     Post,
@@ -7,29 +8,34 @@ import {
     UseInterceptors,
     UsePipes
 } from '@nestjs/common';
-import * as crypto from 'crypto';
 
+import { ApiOperation } from '@nestjs/swagger';
+import { ForbiddenError } from '../../../lib/errors';
 import AuthRequestInterceptor from '@restify/Interceptors/AuthRequestInterceptor';
 import GetInstanceInfoInterceptor from '@restify/Interceptors/GetInstanceInfoInterceptor';
 import { emailRegexp, fullNameRegexp } from '@dbLib/regexps';
 import RequestValidator from '@restify/validators/RequestValidator';
 import NoAuthRequestInterceptor from '@restify/Interceptors/NoAuthRequestInterceptor';
-import { initSessionCookies } from '@restify/lib';
+import initSession from '../lib/initSession';
+import emitBgEvent from '../../../srv-db/lib/emitBgEvent';
 
 import User from '../models/user';
+import Device from '../models/device';
+import Token from '../models/token';
 
 export default () => {
     @Controller()
     class AuthController {
         @Get('/me')
-        @UseInterceptors(AuthRequestInterceptor(false, false))
+        @UseInterceptors(AuthRequestInterceptor(false))
         @UseInterceptors(GetInstanceInfoInterceptor)
         me(@Req() req) {
             return req.profile;
         }
 
         @Post('/signup')
-        @UseInterceptors(NoAuthRequestInterceptor(true))
+        @ApiOperation({ summary: 'Get All Operations' })
+        @UseInterceptors(NoAuthRequestInterceptor())
         @UseInterceptors(GetInstanceInfoInterceptor)
         @UsePipes(RequestValidator(
             null,
@@ -42,6 +48,7 @@ export default () => {
                 password: {
                     type: String,
                     minLength: 6,
+                    maxLength: 128,
                     required: true
                 },
                 fullName: {
@@ -53,18 +60,118 @@ export default () => {
             }
         ))
         async signUpHandler(@Req() req, @Res({ passthrough: true }) res, @Body() body) {
-            req.user = await User.signUpLocal(body, req.requestInfo);
-            req.profile = req.user;
-            req.sessionId = crypto.randomUUID();
+            return initSession(req, res, req => User.signUpLocal(body, req.requestInfo), false, true);
+        }
 
-            initSessionCookies(req, res, req.user);
+        @Post('/login')
+        @UseInterceptors(NoAuthRequestInterceptor())
+        @UseInterceptors(GetInstanceInfoInterceptor)
+        @UsePipes(RequestValidator(
+            null,
+            {
+                login: {
+                    type: String,
+                    required: true,
+                    match: emailRegexp
+                },
+                password: {
+                    type: String,
+                    minLength: 6,
+                    required: true
+                },
+                lang: {
+                    type: String
+                },
+                timeZone: {
+                    type: String
+                }
+            }
+        ))
+        async logInHandler(@Req() req, @Res({ passthrough: true }) res, @Body() body) {
+            return initSession(req, res, req => User.logInLocal(body, req.requestInfo));
+        }
 
-            await Promise.all([
-                // Login.handleLogin(req.user, req),
-                req.user.bumpActivity(req.sessionId, true)
-            ]);
+        @Post('/logout')
+        @UseInterceptors(AuthRequestInterceptor())
+        @UseInterceptors(GetInstanceInfoInterceptor)
+        async logout(@Req() req) {
+            if (req.fakeId) {
+                delete req.fakeId;
+                // initSessionCookies(req, res, req.user);
+            } else {
+                await req.dropSession('logout');
+            }
+        }
 
-            return req.user;
+        // Запрос на смену пароля для не авторизированного пользователя
+        @Get('/change-password')
+        @UseInterceptors(NoAuthRequestInterceptor())
+        @UseInterceptors(GetInstanceInfoInterceptor)
+        @UsePipes(RequestValidator(
+            {
+                token: {
+                    type: String,
+                    required: true
+                }
+            },
+            null
+        ))
+        async checkToken(@Req() req, @Query() query) {
+            await User.checkTokenExisting(query, Token.RESET_PASSWORD_TYPE, false);
+        }
+
+        @Post('/change-password')
+        @UseInterceptors(NoAuthRequestInterceptor())
+        @UseInterceptors(GetInstanceInfoInterceptor)
+        @UsePipes(RequestValidator(null, {
+            login: {
+                type: String,
+                required: true
+            }
+        }))
+        async askPasswordChange(@Req() req, @Body() body) {
+            const user = await User.getAccountByLogin(body.login);
+
+            if (!user) {
+                throw new ForbiddenError('userIsNotRegistered');
+            }
+
+            // TODO: ограничить количество восстановлений
+            await emitBgEvent.sendEvent('changePasswordRequest', { toId: user._id }, 'auth-events');
+        }
+
+        // Запрос на смену пароля для авторизированного пользователя
+        @Post('/update-password')
+        @UseInterceptors(AuthRequestInterceptor())
+        @UseInterceptors(GetInstanceInfoInterceptor)
+        @UsePipes(RequestValidator(null, {
+            oldPassword: {
+                type: String,
+                minLength: 6,
+                maxLength: 128,
+                required: true
+            },
+            newPassword: {
+                type: String,
+                minLength: 6,
+                maxLength: 128,
+                required: true
+            }
+        }))
+        async updatePassword(@Req() req, @Res({ passthrough: true }) res, @Body() body) {
+            const passwordChange = async (request, user, data) => {
+                const currentUser = await (user
+                    ? user.changePasswordByRequest(data.oldPassword, data.newPassword)
+                    : User.changePasswordByToken(data.token, data.newPassword));
+
+                await emitBgEvent.sendEvent('passwordChanged', { _user: currentUser._id }, 'auth-events');
+
+                await Device.purgeDevices(currentUser, user ? request.sessionId : null);
+
+                return currentUser;
+            };
+
+            return initSession(req, res, req => passwordChange(req, req.profile, body), true);
         }
     }
 

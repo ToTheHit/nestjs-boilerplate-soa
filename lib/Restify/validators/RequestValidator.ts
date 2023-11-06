@@ -77,13 +77,6 @@ const buildSchema = fields => {
             ? fields
             : {}, { _id: false, id: false, versionKey: false });
 
-    schema.add({
-        opId: {
-            type: String,
-            default: undefined
-        }
-    });
-
     schema.loadClass(RequestObject, false);
 
     return schema;

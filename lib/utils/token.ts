@@ -1,16 +1,14 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import * as jwtoken from 'jsonwebtoken';
 import { decode } from 'jsonwebtoken';
 import { BadRequest } from '../errors';
 
 const { JsonWebTokenError, TokenExpiredError, ...jwt } = jwtoken;
 
-const randKey = async (length = 6) => new Promise((resolve, reject) => (
+const randKey = async (length = 6) => new Promise((resolve, reject) => {
     // eslint-disable-next-line no-promise-executor-return
-    crypto.randomBytes(length, (err, bytes) => (
-        err ? reject(err) : resolve(bytes.toString('hex'))
-    ))
-));
+    return crypto.randomBytes(length, (err, bytes) => (err ? reject(err) : resolve(bytes.toString('hex'))));
+});
 
 const extractData = token => {
     try {

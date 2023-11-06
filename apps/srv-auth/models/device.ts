@@ -86,7 +86,8 @@ class DeviceClass extends MagicModel {
         const platforms = [];
 
         if (exceptedSessionId) {
-            const { deviceName } = await this.findOne({ sessionId: exceptedSessionId }).select('deviceName').lean();
+            const { deviceName }: { deviceName: string } =
+                await this.findOne({ sessionId: exceptedSessionId }).select('deviceName').lean();
 
             platforms.push(deviceName);
         }

@@ -9,7 +9,8 @@ export interface IBumpActivityData {
     registration: string;
     _user: TObjectId;
 }
-const bumpUserActivity = async ({ data }: {data: IBumpActivityData}) => {
+
+const bumpUserActivity = async ({ data }: { data: IBumpActivityData }) => {
     const {
         sessionId,
         platform,

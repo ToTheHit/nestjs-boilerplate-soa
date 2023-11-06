@@ -20,6 +20,11 @@ export default class GetInstanceInfoInterceptor<T> implements NestInterceptor<T,
 
         return next.handle().pipe(
             switchMap(async data => {
+                // TODO resp data === null
+                if (!data) {
+                    return null;
+                }
+
                 res.responseObject.result = await data.getObjectInfoPublic(req.profile, req.query && req.query.fields);
 
                 return res.responseObject;
