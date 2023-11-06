@@ -1,5 +1,5 @@
+import MagicSchema from '@models/MagicSchema';
 import { extractData } from '../utils/token';
-import MagicSchema from '../../srv-db/models/MagicSchema';
 import { BadRequest } from '../errors';
 import { parse as parseCookies } from '../utils/cookie';
 

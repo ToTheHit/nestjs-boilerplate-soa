@@ -1,23 +1,23 @@
 import mongoose from 'mongoose';
 import { NotFoundError } from 'rxjs';
 
-import MagicSchema, { TMagicSchemaStatic, TObjectId, TMagicSchema } from '../../MagicSchema';
-import securedFieldsList from '../../../lib/securedFieldsList';
+import { BadRequest, ForbiddenError, ValidationError } from '@lib/errors';
+import type { IGetterQuery, IRequest } from '@lib/interface';
+import securedFieldsList from '@dbLib/securedFieldsList';
+import isDeleted from '@dbLib/isDeleted';
+import { TMethod } from '@dbLib/constants';
+import type { TUser } from '@srvAuth/models/user';
 import {
     getObjectKeysWithValuesByObject, getObjectsDiff, omit, pick, reduceToObject
-} from '../../../../lib/utils/fn';
-import { BadRequest, ForbiddenError, ValidationError } from '../../../../lib/errors';
-import isDeleted from '../../../lib/isDeleted';
-import MagicDocument from '../../MagicDocument';
-import MagicModel from '../../MagicModel';
+} from '@lib/utils/fn';
 
-import { TMagicObject } from '../MagicObject';
+import MagicSchema, { TMagicSchemaStatic, TObjectId, TMagicSchema } from '../../MagicSchema';
+import MagicDocument from '../../MagicDocument';
+import MagicModel, { TMagicModel } from '../../MagicModel';
+import type { TMagicObject } from '../MagicObject';
 import { TShortId } from '../ShortId';
-import { IGetterQuery, IRequest } from '../../../../lib/interface';
-import { TCheckAccessRights } from './CheckAccessRights';
-import { TUser } from '../../../../apps/srv-auth/models/user';
+import type { TCheckAccessRights } from './CheckAccessRights';
 import { TCalculatedFields, TCalculatedFieldsStatic } from '../CalculatedFields';
-import { TMethod } from '../../../lib/constants';
 
 const disableGlobalId = Symbol('disableGlobalId');
 const defaultSortOrder = Symbol('defaultSortOrder');
@@ -166,7 +166,12 @@ class PublicInterfaceObject extends MagicModel {
         );
     }
 
-    static async getObjectsInfo(profile: any, objectsList: any, baseObject: any = null, query: IGetObjectsInfoQuery = {}) {
+    static async getObjectsInfo(
+        profile: any,
+        objectsList: any,
+        baseObject: any = null,
+        query: IGetObjectsInfoQuery = {}
+    ) {
         if (objectsList.list) {
             return {
                 ...objectsList,
@@ -179,9 +184,8 @@ class PublicInterfaceObject extends MagicModel {
         }
 
         const { skipInner = false, fields: fieldsToGet, publicInfo = false } = query || {};
-
         const securedFields = await securedFieldsList(
-            (<TMagicSchema><unknown> this).describe(false, false),
+            (<TMagicModel><unknown> this).schema.describe(false, false),
             profile,
             'read',
             false,
@@ -199,9 +203,18 @@ class PublicInterfaceObject extends MagicModel {
 
         await (<TMagicSchemaStatic><unknown> this).emitModelEvent('pre-info', profile);
 
-        await (<TMagicSchemaStatic><unknown> this).emitModelEvent('objects-info', profile, result, objectsList, skipInner, baseObject, fieldsToGet);
+        await (<TMagicSchemaStatic><unknown> this).emitModelEvent(
+            'objects-info',
+            profile,
+            result,
+            objectsList,
+            skipInner,
+            baseObject,
+            fieldsToGet
+        );
+
         for (const id of Object.keys(result)) {
-            result[id] = omit(result[id], securedFields);
+            result[id] = pick(result[id], securedFields);
         }
 
         return Object.values(result);

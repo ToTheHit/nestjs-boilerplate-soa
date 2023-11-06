@@ -1,8 +1,9 @@
-import PublicInterface, {
+import type {
     TPublicInterface,
     IOptions as IOptionsPublicInterface,
     TPublicInterfaceStatic
 } from './PublicInterface';
+import PublicInterface from './PublicInterface';
 import CheckAccessRights, {
     TCheckAccessRights,
     IOptions as IOptionsCheckAccessRights,

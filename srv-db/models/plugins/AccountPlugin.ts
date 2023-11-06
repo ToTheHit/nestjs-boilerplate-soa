@@ -1,7 +1,10 @@
 import { needConfirmAccountTime } from 'config';
 
+import type { TUser } from '@srvAuth/models/user';
+import { AccessDenied, NotAcceptable, ValidationError } from '@lib/errors';
+import sha1 from '@lib/utils/sha1';
+import mq from '@db/RabbitMQ/MQHandler';
 import MagicObject, { TMagicObject } from './MagicObject';
-import { AccessDenied, NotAcceptable, ValidationError } from '../../../lib/errors';
 import ProfileHuman, { TProfileHuman, TProfileHumanStatic } from './ProfileHuman';
 import MagicSchema, { TObjectId } from '../MagicSchema';
 import AccountWithConfirmation, {
@@ -10,11 +13,8 @@ import AccountWithConfirmation, {
 } from './AccountWithConfirmation';
 import MagicModel from '../MagicModel';
 import { TProfileWithToken } from '../ProfileWithToken';
-import sha1 from '../../../lib/utils/sha1';
 import emitBgEvent from '../../lib/emitBgEvent';
 import { PublicInterfaceController } from './PublicObject/PublicInterface';
-import { TUser } from '../../../apps/srv-auth/models/user';
-import mq from '../../db/RabbitMQ/MQHandler';
 
 interface ISignUp {
     email: string;

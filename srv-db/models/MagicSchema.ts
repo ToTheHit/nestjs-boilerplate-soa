@@ -169,6 +169,7 @@ class MetaData {
     }
 }
 
+// @ts-ignore
 class MagicSchema extends Schema {
     private Model: mongoose.Model<any>;
 

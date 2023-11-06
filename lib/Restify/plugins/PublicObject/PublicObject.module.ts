@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import PublicObjectGetList from './handlers/GetListHandler.controller';
 import PublicObjectGetInstance from './handlers/GetInstanceHandler.controller';
 
-export default () => {
+export default Model => {
     const controllers = [
-        PublicObjectGetList,
-        PublicObjectGetInstance
+        PublicObjectGetList(Model),
+        PublicObjectGetInstance(Model)
     ];
 
     @Module({

@@ -85,7 +85,8 @@ const buildSchema = fields => {
 interface IData {
     [key: string]: NonNullable<unknown>; // TODO: Привести к монгусовскому типу поля
 }
-export default (query: IData, body: IData) => {
+
+export default (query: IData | MagicSchema, body: IData | MagicSchema) => {
     const schemaCache = {
         query: null,
         body: null

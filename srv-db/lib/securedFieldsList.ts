@@ -54,8 +54,8 @@ const securedFieldsList = async (
     await Promise.all(
         Object.keys(schema)
             .map(async key => ((filterProtected && !(await isNotAllowed(method, profile, schema[key].options.protected))) ||
-            (filterPrivate && !(await isNotAllowed(method, profile, schema[key].options.private))) ||
-            (filterPublic && (await isNotAllowed(method, profile, schema[key].options.public)))
+            (filterPrivate && !(await isNotAllowed(method, profile, schema[key].options?.private))) ||
+            (filterPublic && (await isNotAllowed(method, profile, schema[key].options?.public)))
                 ? key
                 : null))
     )
