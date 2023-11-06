@@ -1,8 +1,8 @@
-import MagicSchema from '../../../srv-db/models/MagicSchema';
-import MagicObject, { TMagicObject, TMagicObjectStatic } from '../../../srv-db/models/plugins/MagicObject';
+import MagicSchema from '@models/MagicSchema';
+import MagicObject from '@plugins/MagicObject';
+import MagicModel from '@models/MagicModel';
+import { formatDateTime } from '@lib/utils/daytime';
 import { TUser } from './user';
-import MagicModel from '../../../srv-db/models/MagicModel';
-import { formatDateTime } from '../../../lib/utils/daytime';
 
 const LoginSchema = new MagicSchema({
     _userId: {

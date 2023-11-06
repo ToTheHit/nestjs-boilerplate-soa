@@ -1,8 +1,8 @@
-import MagicSchema from '../../../srv-db/models/MagicSchema';
-import AccountObject from '../../../srv-db/models/plugins/AccountObject';
+import MagicSchema from '@models/MagicSchema';
+import AccountObject from '@plugins/AccountObject';
 
-import { randKey as generateToken } from '../../../lib/utils/token';
-import MagicModel from '../../../srv-db/models/MagicModel';
+import { randKey as generateToken } from '@lib/utils/token';
+import MagicModel from '@models/MagicModel';
 
 const RESET_PASSWORD_TYPE = 'resetPassword';
 const ACTIVATE_TYPE = 'activate';

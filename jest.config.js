@@ -8,5 +8,6 @@ module.exports = {
     testMatch: ['**/test/**/?(*.)+(spec|test).[jt]s?(x)'],
     roots: ['<rootDir>'],
     modulePaths: [compilerOptions.baseUrl],
-    moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths)
+    moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths),
+    globalSetup: './test-utils/globalSetup.ts'
 };

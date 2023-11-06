@@ -17,6 +17,12 @@
       "root": "apps/srv-auth",
       "entryFile": "worker",
       "sourceRoot": "apps/srv-auth"
+    },
+    "doc": {
+      "type": "application",
+      "root": "apps/srv-doc",
+      "entryFile": "service",
+      "sourceRoot": "apps/srv-doc"
     }
   }
 }

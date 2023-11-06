@@ -1,7 +1,7 @@
+import MQHandler from '@db/RabbitMQ/MQHandler';
+import { TObjectId } from '@models/MagicSchema';
 import User from '../models/user';
-import MQHandler from '../../../srv-db/db/RabbitMQ/MQHandler';
 import Device from '../models/device';
-import { TObjectId } from '../../../srv-db/models/MagicSchema';
 
 export interface IDropSessionData {
     reason: string;

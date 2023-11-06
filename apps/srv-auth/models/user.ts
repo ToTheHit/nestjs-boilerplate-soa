@@ -92,14 +92,11 @@ class UserClass extends MagicModel {
 
 const UserSchema = new MagicSchema(
     {
-        _lastWs: {
-            type: MagicSchema.Types.ObjectId,
-            ref: 'workspace',
-            protected: true,
+        createdAt: {
+            type: Number,
+            description: 'Дата создания',
             default: null
-        },
-
-        createdAt: Number
+        }
     },
     {
         _id: true,

@@ -9,15 +9,18 @@ import {
     UsePipes
 } from '@nestjs/common';
 
-import { ApiOperation } from '@nestjs/swagger';
-import { ForbiddenError } from '../../../lib/errors';
+import {
+    ApiOkResponse, ApiOperation, ApiTags
+} from '@nestjs/swagger';
+import { ForbiddenError } from '@lib/errors';
 import AuthRequestInterceptor from '@restify/Interceptors/AuthRequestInterceptor';
 import GetInstanceInfoInterceptor from '@restify/Interceptors/GetInstanceInfoInterceptor';
 import { emailRegexp, fullNameRegexp } from '@dbLib/regexps';
 import RequestValidator from '@restify/validators/RequestValidator';
 import NoAuthRequestInterceptor from '@restify/Interceptors/NoAuthRequestInterceptor';
+import emitBgEvent from '@dbLib/emitBgEvent';
+import autoDocs from '@srvDoc/decorators/autoDoc';
 import initSession from '../lib/initSession';
-import emitBgEvent from '../../../srv-db/lib/emitBgEvent';
 
 import User from '../models/user';
 import Device from '../models/device';
@@ -25,8 +28,13 @@ import Token from '../models/token';
 
 export default () => {
     @Controller()
+    @ApiTags('user')
     class AuthController {
         @Get('/me')
+        @autoDocs({
+            apiOperation: { summary: 'Me', description: 'user info' },
+            apiOkResponse: { Model: User }
+        })
         @UseInterceptors(AuthRequestInterceptor(false))
         @UseInterceptors(GetInstanceInfoInterceptor)
         me(@Req() req) {
@@ -34,7 +42,8 @@ export default () => {
         }
 
         @Post('/signup')
-        @ApiOperation({ summary: 'Get All Operations' })
+        @ApiOperation({ summary: 'Signup', description: 'signup user' })
+        // @ApiOkResponse({ type: DUser })
         @UseInterceptors(NoAuthRequestInterceptor())
         @UseInterceptors(GetInstanceInfoInterceptor)
         @UsePipes(RequestValidator(
@@ -64,6 +73,8 @@ export default () => {
         }
 
         @Post('/login')
+        @ApiOperation({ summary: 'Login', description: 'login user' })
+        // @ApiOkResponse({ type: DUser })
         @UseInterceptors(NoAuthRequestInterceptor())
         @UseInterceptors(GetInstanceInfoInterceptor)
         @UsePipes(RequestValidator(
@@ -77,6 +88,7 @@ export default () => {
                 password: {
                     type: String,
                     minLength: 6,
+                    maxLength: 128,
                     required: true
                 },
                 lang: {
@@ -92,6 +104,8 @@ export default () => {
         }
 
         @Post('/logout')
+        @ApiOperation({ summary: 'Logout', description: 'Logout user' })
+        @ApiOkResponse({ type: null })
         @UseInterceptors(AuthRequestInterceptor())
         @UseInterceptors(GetInstanceInfoInterceptor)
         async logout(@Req() req) {
@@ -105,6 +119,8 @@ export default () => {
 
         // Запрос на смену пароля для не авторизированного пользователя
         @Get('/change-password')
+        @ApiOperation({ summary: 'Change password', description: 'Change password user' })
+        @ApiOkResponse({ type: null })
         @UseInterceptors(NoAuthRequestInterceptor())
         @UseInterceptors(GetInstanceInfoInterceptor)
         @UsePipes(RequestValidator(
@@ -121,6 +137,8 @@ export default () => {
         }
 
         @Post('/change-password')
+        @ApiOperation({ summary: 'Change password', description: 'Change password user' })
+        @ApiOkResponse({ type: null })
         @UseInterceptors(NoAuthRequestInterceptor())
         @UseInterceptors(GetInstanceInfoInterceptor)
         @UsePipes(RequestValidator(null, {
@@ -142,6 +160,8 @@ export default () => {
 
         // Запрос на смену пароля для авторизированного пользователя
         @Post('/update-password')
+        @ApiOperation({ summary: 'Update password', description: 'Update password user' })
+        @ApiOkResponse({ type: null })
         @UseInterceptors(AuthRequestInterceptor())
         @UseInterceptors(GetInstanceInfoInterceptor)
         @UsePipes(RequestValidator(null, {

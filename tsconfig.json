@@ -17,6 +17,7 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "resolveJsonModule": true,
     "paths": {
       "@db/*": [
         "srv-db/db/*",
@@ -43,6 +44,9 @@
         "apps/srv-auth/*",
         "apps/srv-auth/events/*",
         "apps/srv-auth/models/*"
+      ],
+      "@srvDoc/*": [
+        "apps/srv-doc/*"
       ]
     }
   }

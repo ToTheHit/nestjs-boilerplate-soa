@@ -1,7 +1,6 @@
 import * as should from 'should';
 import * as sinon from 'sinon';
 import Redis from 'ioredis-mock';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 
 import RedisConnector from '@db/Redis/RedisConnector';
 import { isEqual } from '../lib/utils/fn';
@@ -197,20 +196,3 @@ should.Assertion.add(
         });
     }
 );
-
-let isAsserted = false;
-
-const assert = async () => {
-    if (!isAsserted) {
-        isAsserted = true;
-        // 6.0.9
-        const mongoServer = await MongoMemoryServer.create({
-            binary: { version: '7.0.2' },
-            instance: { port: 27018 }
-        });
-    }
-
-    return should;
-};
-
-export default assert;

@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
-import MQHandler from '../../../srv-db/db/RabbitMQ/MQHandler';
-import { initSessionCookies } from '../../../lib/Restify/lib';
+import MQHandler from '@db/RabbitMQ/MQHandler';
+import { initSessionCookies } from '@restify/lib';
 
 import Login from '../models/login';
 

@@ -5,7 +5,8 @@ module.exports = {
         host: 'localhost'
     },
     port: {
-        auth: 3038
+        auth: 3038,
+        doc: 3039
     },
     muteUnknownFieldsError: true,
     session: {
