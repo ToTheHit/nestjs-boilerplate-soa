@@ -2,34 +2,13 @@ import {
     CallHandler, ExecutionContext, Injectable, NestInterceptor
 } from '@nestjs/common';
 import { map } from 'rxjs';
-import { Reflector } from '@nestjs/core';
+import getListObjects from '@restify/getListObjects';
+import MagicModel from '@models/MagicModel';
 import MagicSchema from '../../../srv-db/models/MagicSchema';
-import {
-    AnswerBinary,
-    AnswerEmpty,
-    AnswerRawJson,
-    AnswerRedirect, AnswerRegular,
-    AnswerRender, AnswerSimple,
-    AnswerStream
-} from '../handlers/answers';
-import { ValidationError } from '../../errors';
-import BasicRequestInterceptor from './BasicRequestInterceptor';
-import RequestWithTokenInterceptor from './RequestWithTokenInterceptor';
 
-const supportedAnswers = {
-    stream: AnswerStream,
-    binary: AnswerBinary,
-    empty: AnswerEmpty,
-    json: AnswerRawJson,
-    redirect: AnswerRedirect,
-    regular: AnswerRegular,
-    simple: AnswerSimple,
-    render: AnswerRender
-};
-
-export default ignoreDeletion => {
+export default (Model: MagicModel, ignoreDeletion: boolean) => {
     @Injectable()
-    class GetInstanceInterceptor<T> extends RequestWithTokenInterceptor<T> {
+    class GetInstanceInterceptor<T> extends getListObjects(Model, true)<T> {
         async intercept(_context: ExecutionContext, next: CallHandler) {
             await super.intercept(_context, next);
             const req = _context.switchToHttp().getRequest();
@@ -44,11 +23,11 @@ export default ignoreDeletion => {
                 ? { _wsId }
                 : {};
 
-            const Model = MagicSchema.modelByCollectionName(collectionName, true);
+            const targetModel = MagicSchema.modelByCollectionName(collectionName, true);
 
             req.currentObject = await (_shortId
-                ? Model.getObjectByShortId(req.profile, _shortId, { ignoreDeletion, queryModif })
-                : Model.getObject(req.profile, _id, { ignoreDeletion, queryModif }));
+                ? targetModel.getObjectByShortId(req.profile, _shortId, { ignoreDeletion, queryModif })
+                : targetModel.getObject(req.profile, _id, { ignoreDeletion, queryModif }));
 
             return next.handle().pipe(
                 map(data => {

@@ -15,7 +15,7 @@ export default Model => {
     @Controller()
     class PublicObjectGetInstance {
         @Get(':_id')
-        @UseInterceptors(GetInstanceInterceptor(true))
+        @UseInterceptors(GetInstanceInterceptor(Model, true))
         @UsePipes(RequestValidator({
             fields: {
                 type: [String],
@@ -43,7 +43,7 @@ export default Model => {
         }
 
         @Post(':_id')
-        @UseInterceptors(GetInstanceInterceptor(true))
+        @UseInterceptors(GetInstanceInterceptor(Model, true))
         @UsePipes(RequestValidator(null, buildSchema(Model, 'create')))
         async createHandler(
             @Req() req,
@@ -56,7 +56,7 @@ export default Model => {
         }
 
         @Patch(':_id')
-        @UseInterceptors(GetInstanceInterceptor(true))
+        @UseInterceptors(GetInstanceInterceptor(Model, true))
         @UsePipes(RequestValidator(null, buildSchema(Model, 'update')))
         async updateHandler(
             @Req() req,
@@ -69,7 +69,7 @@ export default Model => {
         }
 
         @Delete(':_id')
-        @UseInterceptors(GetInstanceInterceptor(true))
+        @UseInterceptors(GetInstanceInterceptor(Model, true))
         @UsePipes(RequestValidator({}, null))
         deleteHandler(
             @Req() req,
