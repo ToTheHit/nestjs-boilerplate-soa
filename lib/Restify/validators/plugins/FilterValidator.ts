@@ -100,22 +100,22 @@ interface IOptions {
 }
 function FilterValidator(schema, options: IOptions) {
     const { Model, description = defaultDescription } = options;
-    const filter = new MagicSchema({}, { _id: false, id: false });
+    // const filter = new MagicSchema({}, { _id: false, id: false });
 
     Model.schema.eachPath((fieldName, field) => {
         if (field.options.in_filter) {
             schema.add(buildFilterField(field));
-            filter.add(buildFilterField(field));
+            // filter.add(buildFilterField(field));
         }
     });
 
-    schema.add({
-        filter: {
-            description,
-            type: filter,
-            default: undefined
-        }
-    });
+    // schema.add({
+    //     filter: {
+    //         description,
+    //         type: filter,
+    //         default: undefined
+    //     }
+    // });
 
     schema.loadClass(FilterHandler);
 }

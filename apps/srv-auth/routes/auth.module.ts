@@ -13,14 +13,16 @@ import User from '../models/user';
 class AuthModule {}
 
 @Module({
-    imports: [RouterModule.register([
-        {
-            path: `${rest.api}/:collectionName(${User.getPublicName()})`,
-            module: AuthModule
-        }
-    ])],
+    imports: [
+        AuthModule,
+        RouterModule.register([
+            {
+                path: `${rest.api}/:collectionName(${User.getPublicName()})`,
+                module: AuthModule
+            }
+        ])],
     exports: [RouterModule]
 })
 class AuthRoutingModule {}
 
-export { AuthModule, AuthRoutingModule };
+export default AuthRoutingModule;

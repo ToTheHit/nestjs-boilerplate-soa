@@ -173,11 +173,11 @@ class MetaData {
 class MagicSchema extends Schema {
     private Model: mongoose.Model<any>;
 
-    private tree: any;
+    tree: any;
 
     constructor(obj, options = {}) {
         super(obj, {
-            ...options, minimize: false, _id: true, id: false
+            minimize: false, _id: true, id: false, ...options
         });
 
         this.set('toJSON', { getters: true, virtuals: true });

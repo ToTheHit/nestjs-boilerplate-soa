@@ -13,7 +13,7 @@ class EmailController extends MagicModel {
         const Employee = MagicSchema.model('employee');
         const employee = await Employee.findOne({ _user: this._id });
 
-        const promises = [];
+        const promises: Promise<any>[] = [];
 
         promises.push(this.model().updateOne({ _id: this._id }, { $set: { email } }));
         promises.push(employee.updateObjectLowLevel(employee, {}, { email }));

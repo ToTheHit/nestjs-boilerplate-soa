@@ -15,8 +15,8 @@ interface IApiOperation {
 }
 
 interface IParams {
-    apiOperation?: IApiOperation,
-    apiOkResponse?: IMagicModel
+    apiOperation: IApiOperation,
+    apiOkResponse: IMagicModel
 }
 
 const autoDocs = (params: IParams) => {

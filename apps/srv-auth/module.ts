@@ -5,13 +5,12 @@ import MongoDB from '@db/MongoDB';
 import AnswerInterceptor from '@restify/Interceptors/answerInterceptor';
 import { UserSchema } from './models/user';
 import RequestInfoInterceptor from '../../lib/Restify/Interceptors/requestInfo';
-import { AuthModule, AuthRoutingModule } from './routes/auth.module';
+import AuthRoutingModule from './routes/auth.module';
 
 import { DeviceSchema } from './models/device';
 
 export default (addRoutes = true) => {
     const routes = [
-        AuthModule,
         AuthRoutingModule
     ];
 

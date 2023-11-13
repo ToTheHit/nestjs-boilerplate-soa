@@ -3,38 +3,46 @@ import {
     Controller, Delete,
     Get,
     Param, Patch, Post, Req,
-    UseInterceptors, UsePipes
+    UseInterceptors
 } from '@nestjs/common';
 import { removeObject } from '@restify/utils/removeMethod';
-import RequestValidator from '@restify/validators/RequestValidator';
+import { RequestValidatorDecorator } from '@restify/validators/RequestValidator';
 import getInstanceInfo from '@restify/utils/getInstanceInfo';
 import buildSchema from '@restify/utils/buildSchema';
+import { ApiTags } from '@nestjs/swagger';
+import MagicModel from '@models/MagicModel';
 import GetInstanceInterceptor from '../../../Interceptors/getInstanceObject';
 
-export default Model => {
+export default (Model: MagicModel) => {
     @Controller()
+    @ApiTags(Model.getPublicName())
     class PublicObjectGetInstance {
         @Get(':_id')
         @UseInterceptors(GetInstanceInterceptor(Model, true))
-        @UsePipes(RequestValidator({
-            fields: {
-                type: [String],
-                default: undefined,
-                validate: {
-                    async validator(valueRaw) {
-                        const { profile } = this.ctx();
+        @RequestValidatorDecorator(
+            {
+                additionalValidation: {
+                    fields: {
+                        type: [String],
+                        default: undefined,
+                        validate: {
+                            async validator(valueRaw) {
+                                const { profile } = this.ctx();
 
-                        if (!Array.isArray(valueRaw) || valueRaw.length === 0) {
-                            return false;
+                                if (!Array.isArray(valueRaw) || valueRaw.length === 0) {
+                                    return false;
+                                }
+
+                                const editableFields = await Model.getEditableFields(profile, 'read');
+
+                                return valueRaw.every(field => editableFields.includes(field));
+                            }
                         }
-
-                        const editableFields = await Model.getEditableFields(profile, 'read');
-
-                        return valueRaw.every(field => editableFields.includes(field));
                     }
                 }
-            }
-        }, null))
+            },
+            {}
+        )
         getHandler(
             @Req() req,
             @Param('_id') _id
@@ -44,7 +52,7 @@ export default Model => {
 
         @Post(':_id')
         @UseInterceptors(GetInstanceInterceptor(Model, true))
-        @UsePipes(RequestValidator(null, buildSchema(Model, 'create')))
+        @RequestValidatorDecorator({}, { additionalValidation: buildSchema(Model, 'create') })
         async createHandler(
             @Req() req,
             @Body() body,
@@ -57,7 +65,7 @@ export default Model => {
 
         @Patch(':_id')
         @UseInterceptors(GetInstanceInterceptor(Model, true))
-        @UsePipes(RequestValidator(null, buildSchema(Model, 'update')))
+        @RequestValidatorDecorator({}, { additionalValidation: buildSchema(Model, 'update') })
         async updateHandler(
             @Req() req,
             @Body() body,
@@ -70,7 +78,6 @@ export default Model => {
 
         @Delete(':_id')
         @UseInterceptors(GetInstanceInterceptor(Model, true))
-        @UsePipes(RequestValidator({}, null))
         deleteHandler(
             @Req() req,
             @Param('_id') _id

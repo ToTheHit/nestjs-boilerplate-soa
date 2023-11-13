@@ -1,40 +1,55 @@
 import {
     Body,
-    Controller, Delete, Get, Param, Patch, Post, Query, Req, UseInterceptors, UsePipes
+    Controller, Delete, Get, Param, Patch, Post, Query, Req, UseInterceptors
 } from '@nestjs/common';
 import GetListObjects from '@restify/getListObjects';
-import RequestValidator from '@restify/validators/RequestValidator';
-import { removeObjectsList } from '@restify/utils/removeMethod';
+import { RequestValidatorDecorator } from '@restify/validators/RequestValidator';
+import MagicModel from '@models/MagicModel';
+import { ApiTags } from '@nestjs/swagger';
+import autoDocs from '@srvDoc/decorators/autoDoc';
 import buildSchema from '@restify/utils/buildSchema';
+import { removeObjectsList } from '@restify/utils/removeMethod';
 
-export default Model => {
+export default (Model: MagicModel) => {
     @Controller()
+    @ApiTags(Model.getPublicName())
     class PublicObjectGetList {
         @Get('/')
-        @UseInterceptors(GetListObjects(false))
-        @UsePipes(RequestValidator({
-            skipInner: {
-                type: Boolean,
-                default: false
-            },
-            fields: {
-                type: [String],
-                default: undefined,
-                validate: {
-                    async validator(valueRaw) {
-                        const { profile } = this.ctx();
+        @UseInterceptors(GetListObjects(Model, false))
+        @RequestValidatorDecorator(
+            {
+                additionalValidation: {
+                    test33: {
+                        type: [{
+                            sessionIdTTT: {
+                                type: String,
+                                default: null
+                            }
+                        }]
+                    },
+                    skipInner: {
+                        type: Boolean
+                    },
+                    fields: {
+                        type: [String],
+                        validate: {
+                            async validator(valueRaw) {
+                                const { profile } = this.ctx();
 
-                        if (!Array.isArray(valueRaw) || valueRaw.length === 0) {
-                            return false;
+                                if (!Array.isArray(valueRaw) || valueRaw.length === 0) {
+                                    return false;
+                                }
+
+                                const editableFields = await Model.getEditableFields(profile, 'read');
+
+                                return valueRaw.every(field => editableFields.includes(field));
+                            }
                         }
-
-                        const editableFields = await Model.getEditableFields(profile, 'read');
-
-                        return valueRaw.every(field => editableFields.includes(field));
                     }
                 }
-            }
-        }, null))
+            },
+            {}
+        )
         async getHandler(
             @Req() req,
             @Query() query
@@ -45,36 +60,41 @@ export default Model => {
         }
 
         @Get('/random')
-        @UseInterceptors(GetListObjects(false))
-        @UsePipes(RequestValidator({
-            limit: {
-                type: Number,
-                default: 1,
-                min: 1,
-                max: 100
-            },
-            skipInner: {
-                type: Boolean,
-                default: false
-            },
-            fields: {
-                type: [String],
-                default: undefined,
-                validate: {
-                    async validator(valueRaw) {
-                        const { profile } = this.ctx();
+        @UseInterceptors(GetListObjects(Model, false))
+        @RequestValidatorDecorator(
+            {
+                additionalValidation: {
+                    limit: {
+                        type: Number,
+                        default: 1,
+                        min: 1,
+                        max: 100
+                    },
+                    skipInner: {
+                        type: Boolean,
+                        default: false
+                    },
+                    fields: {
+                        type: [String],
+                        default: undefined,
+                        validate: {
+                            async validator(valueRaw) {
+                                const { profile } = this.ctx();
 
-                        if (!Array.isArray(valueRaw) || valueRaw.length === 0) {
-                            return false;
+                                if (!Array.isArray(valueRaw) || valueRaw.length === 0) {
+                                    return false;
+                                }
+
+                                const editableFields = await Model.getEditableFields(profile, 'read');
+
+                                return valueRaw.every(field => editableFields.includes(field));
+                            }
                         }
-
-                        const editableFields = await Model.getEditableFields(profile, 'read');
-
-                        return valueRaw.every(field => editableFields.includes(field));
                     }
                 }
-            }
-        }, null))
+            },
+            {}
+        )
         async getRandomHandler(
             @Req() req,
             @Query() query
@@ -85,7 +105,7 @@ export default Model => {
         }
 
         @Get('/filter')
-        @UseInterceptors(GetListObjects(false))
+        @UseInterceptors(GetListObjects(Model, false))
         getFilterHandler(
             @Param('collectionName') collectionName
         ) {
@@ -93,8 +113,7 @@ export default Model => {
         }
 
         @Get('/count')
-        @UseInterceptors(GetListObjects(false))
-        @UsePipes(RequestValidator({}, null))
+        @UseInterceptors(GetListObjects(Model, false))
         getCountHandler(
             @Req() req
         ) {
@@ -107,8 +126,12 @@ export default Model => {
         }
 
         @Post('/')
-        @UseInterceptors(GetListObjects(false))
-        @UsePipes(RequestValidator(null, buildSchema(Model, 'create')))
+        @autoDocs({
+            apiOperation: { summary: 'Create', description: 'create object' },
+            apiOkResponse: { Model }
+        })
+        @UseInterceptors(GetListObjects(Model, false))
+        @RequestValidatorDecorator({}, { additionalValidation: buildSchema(Model, 'create') })
         async createHandler(
             @Req() req,
             @Body() body
@@ -121,8 +144,8 @@ export default Model => {
         }
 
         @Patch('/')
-        @UseInterceptors(GetListObjects(false))
-        @UsePipes(RequestValidator(null, buildSchema(Model, 'update')))
+        @UseInterceptors(GetListObjects(Model, false))
+        @RequestValidatorDecorator({}, { additionalValidation: buildSchema(Model, 'update') })
         async updateHandler(
             @Req() req,
             @Body() body,
@@ -134,8 +157,7 @@ export default Model => {
         }
 
         @Delete('/')
-        @UseInterceptors(GetListObjects(false))
-        @UsePipes(RequestValidator({}, null))
+        @UseInterceptors(GetListObjects(Model, false))
         async deleteHandler(
             @Req() req
         ) {

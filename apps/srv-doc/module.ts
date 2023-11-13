@@ -4,13 +4,12 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import MongoDB from '@db/MongoDB';
 import AnswerInterceptor from '@restify/Interceptors/answerInterceptor';
 import { UserSchema } from '@srvAuth/models/user';
-import { AuthModule, AuthRoutingModule } from '@srvAuth/routes/auth.module';
+import AuthRoutingModule from '@srvAuth/routes/auth.module';
 import { DeviceSchema } from '@srvAuth/models/device';
 import RequestInfoInterceptor from '../../lib/Restify/Interceptors/requestInfo';
 
 export default (addRoutes = true) => {
     const routes = [
-        AuthModule,
         AuthRoutingModule
     ];
 

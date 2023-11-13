@@ -1,13 +1,17 @@
-import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
+import {
+    applyDecorators, ArgumentMetadata, Injectable, PipeTransform, UsePipes
+} from '@nestjs/common';
 import { muteUnknownFieldsError } from 'config';
-
 import * as mongoose from 'mongoose/browser';
-import MagicSchema from '../../../srv-db/models/MagicSchema';
+import { ApiBody, ApiQuery } from '@nestjs/swagger';
+import { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
+
+import formatModelToSwagger from '@srvDoc/decorators/lib/formatModelToSwagger';
 import {
     AccessDenied, GenericError, NotFoundError, ValidationError
-} from '../../errors';
+} from '@lib/errors';
+import MagicSchema from '../../../srv-db/models/MagicSchema';
 
-import MagicDocument from '../../../srv-db/models/MagicDocument';
 import loggerRaw from '../../logger';
 
 const logger = loggerRaw('RequestValidator');
@@ -67,15 +71,14 @@ class RequestObject extends mongoose.Document {
 }
 
 const buildSchema = fields => {
-    if (!fields) {
-        return null;
-    }
-
     const schema = fields instanceof MagicSchema
         ? fields
-        : new MagicSchema(typeof fields === 'object' && fields !== null && !Array.isArray(fields)
-            ? fields
-            : {}, { _id: false, id: false, versionKey: false });
+        : new MagicSchema(
+            typeof fields === 'object' && fields !== null && !Array.isArray(fields)
+                ? fields
+                : {},
+            { _id: false, id: false, versionKey: false }
+        );
 
     schema.loadClass(RequestObject, false);
 
@@ -86,14 +89,11 @@ interface IData {
     [key: string]: NonNullable<unknown>; // TODO: Привести к монгусовскому типу поля
 }
 
-export default (query: IData | MagicSchema, body: IData | MagicSchema) => {
-    const schemaCache = {
-        query: null,
-        body: null
+const RequestValidator = (query: IData | MagicSchema, body: IData | MagicSchema) => {
+    const schemaCache: { query: MagicSchema, body: MagicSchema } = {
+        query: buildSchema(query),
+        body: buildSchema(body)
     };
-
-    schemaCache.query = buildSchema(query);
-    schemaCache.body = buildSchema(body);
 
     const validateSchema = async (source, data) => {
         const schema = schemaCache[source];
@@ -102,7 +102,7 @@ export default (query: IData | MagicSchema, body: IData | MagicSchema) => {
             return null;
         }
 
-        const schemaFields = [];
+        const schemaFields: string[] = [];
 
         schema.eachPath(fieldName => schemaFields.push(fieldName));
 
@@ -134,11 +134,78 @@ export default (query: IData | MagicSchema, body: IData | MagicSchema) => {
     };
 
     @Injectable()
-    class SignUpValidationPipe implements PipeTransform {
+    class RequestValidatorPipe implements PipeTransform {
         async transform(value: any, metadata: ArgumentMetadata) {
             return validateSchema(metadata.type, value);
         }
     }
 
-    return SignUpValidationPipe;
+    return { RequestValidatorPipe, schema: schemaCache };
 };
+
+type TValidator = {
+    validator: (schema: MagicSchema, options: { [key: string]: any }) => void,
+    options?: { [key: string]: any }
+}
+
+type TRequestValidator = {
+    validators?: TValidator[],
+    additionalValidation?: { [key: string]: any } | MagicSchema
+}
+
+const RequestValidatorDecorator = (query: TRequestValidator, body: TRequestValidator) => {
+    const { validators: queryValidators = [], additionalValidation: additionalQueryValidation } = query;
+    const { validators: bodyValidators = [], additionalValidation: additionalBodyValidation } = body;
+
+    const { RequestValidatorPipe, schema } = RequestValidator(additionalQueryValidation, additionalBodyValidation);
+
+    const decorators: Array<ClassDecorator | MethodDecorator | PropertyDecorator> = [
+        UsePipes(RequestValidatorPipe)
+    ];
+
+    queryValidators.forEach(({ validator, options }) => {
+        // TODO: add pipes
+        schema.query.plugin(validator, options);
+    });
+
+    bodyValidators.forEach(({ validator, options }) => {
+        schema.body.plugin(validator, options);
+    });
+
+    if (Object.keys(schema.query.paths).length) {
+        const querySwaggerSchema = formatModelToSwagger(schema.query);
+
+        for (const field in querySwaggerSchema.properties) {
+            const fieldSchema = querySwaggerSchema.properties[field] as SchemaObject;
+
+            decorators.push(
+                ApiQuery({
+                    name: field,
+                    schema: {
+                        type: fieldSchema.type,
+                        items: fieldSchema.items,
+                        properties: fieldSchema.properties,
+                        required: fieldSchema.required
+                    },
+                    enum: fieldSchema.enum?.length ? fieldSchema.enum : undefined,
+                    description: fieldSchema.description,
+                    isArray: fieldSchema.type === 'array',
+                    required: !!fieldSchema.required?.length
+                })
+            );
+        }
+    }
+    if (Object.keys(schema.body.paths).length) {
+        const bodySwaggerSchema = formatModelToSwagger(schema.body);
+
+        decorators.push(
+            ApiBody({ schema: bodySwaggerSchema })
+        );
+    }
+
+    return applyDecorators(...decorators);
+};
+
+export { RequestValidatorDecorator };
+
+export default RequestValidator;
