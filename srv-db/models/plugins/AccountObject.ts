@@ -1,12 +1,12 @@
 import MagicSchema from '../MagicSchema';
 import MagicObject from './MagicObject';
 
-interface IOptions {
+export interface IAccountObjectOptions {
     privateParams?: boolean,
     isRequired?: boolean,
     incomeDataModifierMethods?: []
 }
-function AccountObject(schema, options: IOptions) {
+function AccountObject(schema, options: IAccountObjectOptions) {
     const {
         privateParams = false,
         isRequired = true,

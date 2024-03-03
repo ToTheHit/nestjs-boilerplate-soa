@@ -1,8 +1,8 @@
-import WithPhone, { TWithPhone, TWithPhoneStatic } from './WithPhone';
-import { TMagicSchema } from '../MagicSchema';
+import WithPhone, { IWithPhoneOptions, TWithPhone, TWithPhoneStatic } from './WithPhone';
+import MagicSchema, { TMagicSchema } from '../MagicSchema';
 
-function ProfilePlugin(schema: TMagicSchema, options = {}) {
-    schema.plugin(WithPhone, options);
+function ProfilePlugin(schema: MagicSchema, options: IWithPhoneOptions) {
+    schema.plugin<IWithPhoneOptions>(WithPhone, options);
 }
 
 export default ProfilePlugin;

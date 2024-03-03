@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
     "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -19,6 +20,9 @@
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
     "paths": {
+      "@testUtils/*": [
+        "test-utils/*"
+      ],
       "@db/*": [
         "srv-db/db/*",
         "srv-db/db/RabbitMQ/*",
@@ -42,11 +46,20 @@
       ],
       "@srvAuth/*": [
         "apps/srv-auth/*",
-        "apps/srv-auth/events/*",
         "apps/srv-auth/models/*"
+      ],
+      "@srvAuth/events/*": [
+        "apps/srv-auth/events/*"
       ],
       "@srvDoc/*": [
         "apps/srv-doc/*"
+      ],
+      "@srvMedia/*": [
+        "apps/srv-media/*",
+        "apps/srv-media/models/*"
+      ],
+      "@srvMedia/events/*": [
+        "apps/srv-media/events/*"
       ]
     }
   }

@@ -15,6 +15,10 @@ export default (Model: MagicModel) => {
     @ApiTags(Model.getPublicName())
     class PublicObjectGetList {
         @Get('/')
+        @autoDocs({
+            apiOperation: { summary: 'Get list of instances' },
+            apiOkResponse: { Model, isArray: true }
+        })
         @UseInterceptors(GetListObjects(Model, false))
         @RequestValidatorDecorator(
             {
@@ -60,6 +64,10 @@ export default (Model: MagicModel) => {
         }
 
         @Get('/random')
+        @autoDocs({
+            apiOperation: { summary: 'Get random list of instances' },
+            apiOkResponse: { Model, isArray: true }
+        })
         @UseInterceptors(GetListObjects(Model, false))
         @RequestValidatorDecorator(
             {
@@ -105,6 +113,10 @@ export default (Model: MagicModel) => {
         }
 
         @Get('/filter')
+        @autoDocs({
+            apiOperation: { summary: 'Get list of instances by some filter query' },
+            apiOkResponse: { Model, isArray: true }
+        })
         @UseInterceptors(GetListObjects(Model, false))
         getFilterHandler(
             @Param('collectionName') collectionName
@@ -113,6 +125,10 @@ export default (Model: MagicModel) => {
         }
 
         @Get('/count')
+        @autoDocs({
+            apiOperation: { summary: 'Get count of instances' },
+            apiOkResponse: { Model, isArray: true }
+        })
         @UseInterceptors(GetListObjects(Model, false))
         getCountHandler(
             @Req() req
@@ -127,7 +143,7 @@ export default (Model: MagicModel) => {
 
         @Post('/')
         @autoDocs({
-            apiOperation: { summary: 'Create', description: 'create object' },
+            apiOperation: { summary: 'Create instance' },
             apiOkResponse: { Model }
         })
         @UseInterceptors(GetListObjects(Model, false))
@@ -144,6 +160,10 @@ export default (Model: MagicModel) => {
         }
 
         @Patch('/')
+        @autoDocs({
+            apiOperation: { summary: 'Update list of instance' },
+            apiOkResponse: { Model }
+        })
         @UseInterceptors(GetListObjects(Model, false))
         @RequestValidatorDecorator({}, { additionalValidation: buildSchema(Model, 'update') })
         async updateHandler(
@@ -157,6 +177,10 @@ export default (Model: MagicModel) => {
         }
 
         @Delete('/')
+        @autoDocs({
+            apiOperation: { summary: 'Delete list of instance' },
+            apiOkResponse: { Model }
+        })
         @UseInterceptors(GetListObjects(Model, false))
         async deleteHandler(
             @Req() req

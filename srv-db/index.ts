@@ -1,5 +1,5 @@
+import { redisClient } from '@db/Redis';
 import rabbitMQHandler from './db/RabbitMQ/MQHandler';
-import { redisClient } from './db/Redis/Redis';
 
 export {
     rabbitMQHandler,

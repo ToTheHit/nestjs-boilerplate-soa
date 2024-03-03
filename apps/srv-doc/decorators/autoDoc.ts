@@ -6,7 +6,8 @@ import MagicModel from '@models/MagicModel';
 import formatModelToSwagger from './lib/formatModelToSwagger';
 
 interface IMagicModel {
-    Model: MagicModel | [MagicModel]
+    Model: MagicModel | [MagicModel],
+    isArray?: boolean,
 }
 
 interface IApiOperation {
@@ -22,11 +23,18 @@ interface IParams {
 const autoDocs = (params: IParams) => {
     const { apiOperation, apiOkResponse } = params;
 
-    const swaggerSchema = formatModelToSwagger(apiOkResponse?.Model);
+    let swaggerSchema = formatModelToSwagger(apiOkResponse?.Model);
+
+    if (apiOkResponse.isArray) {
+        swaggerSchema = {
+            type: 'array',
+            items: { allOf: [swaggerSchema] }
+        };
+    }
 
     return applyDecorators(
         ApiOperation(apiOperation),
-        ApiOkResponse({ schema: swaggerSchema })
+        ApiOkResponse({ schema: swaggerSchema, isArray: apiOkResponse.isArray })
         // SetMetadata('roles', roles),
         // UseGuards(AuthGuard, RolesGuard),
         // ApiBearerAuth(),
