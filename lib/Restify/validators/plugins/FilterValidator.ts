@@ -1,5 +1,5 @@
+import { getObjectKeysWithValuesByObject } from '@lib/utils/fn';
 import MagicSchema from '../../../../srv-db/models/MagicSchema';
-import { getObjectKeysWithValuesByObject } from '../../../utils/fn';
 
 const defaultDescription = 'Список фильтров объектов, над которыми происходит операция';
 

@@ -12,9 +12,8 @@ export default (confirmedEmailOnly = true, ignoreBlock = false) => {
     @Injectable()
     class AuthRequestInterceptor<T> extends RequestWithTokenInterceptor<T> {
         async intercept(_context: ExecutionContext, next: CallHandler) {
-            // const contextType = _context.getType<'http' | 'rmq'>();
+            const interceptorsContext = await super.intercept(_context, next);
 
-            await super.intercept(_context, next);
             this.profiles.add('user');
 
             const req = _context.switchToHttp().getRequest();
@@ -46,7 +45,7 @@ export default (confirmedEmailOnly = true, ignoreBlock = false) => {
 
             await Promise.all(promises);
 
-            return next.handle();
+            return interceptorsContext;
         }
     }
 

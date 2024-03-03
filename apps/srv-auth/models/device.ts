@@ -1,7 +1,7 @@
 import MagicModel from '@models/MagicModel';
 import MagicSchema from '@models/MagicSchema';
 import MagicDocument from '@models/MagicDocument';
-import MagicObject, { TMagicObject, TMagicObjectStatic } from '@plugins/MagicObject';
+import MagicObject, { IMagicObjectOptions, TMagicObject, TMagicObjectStatic } from '@plugins/MagicObject';
 
 import { TUser, TUserStatic } from './user';
 
@@ -133,7 +133,7 @@ const DeviceSchema = new MagicSchema({
     }
 });
 
-DeviceSchema.plugin(MagicObject);
+DeviceSchema.plugin<IMagicObjectOptions>(MagicObject, {});
 
 DeviceSchema.loadClass(DeviceClass, false);
 

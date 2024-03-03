@@ -4,8 +4,8 @@ import type { TUser } from '@srvAuth/models/user';
 import { AccessDenied, NotAcceptable, ValidationError } from '@lib/errors';
 import sha1 from '@lib/utils/sha1';
 import mq from '@db/RabbitMQ/MQHandler';
-import MagicObject, { TMagicObject } from './MagicObject';
-import ProfileHuman, { TProfileHuman, TProfileHumanStatic } from './ProfileHuman';
+import MagicObject, { IMagicObjectOptions, TMagicObject } from './MagicObject';
+import ProfileHuman, { IProfileHumanOptions, TProfileHuman, TProfileHumanStatic } from './ProfileHuman';
 import MagicSchema, { TObjectId } from '../MagicSchema';
 import AccountWithConfirmation, {
     TAccountWithConfirmation,
@@ -334,7 +334,7 @@ class AccountController extends Account {
 }
 
 function AccountPlugin(schema: MagicSchema) {
-    schema.plugin(MagicObject);
+    schema.plugin<IMagicObjectOptions>(MagicObject, {});
 
     schema.add({
         confirmed: {
@@ -369,8 +369,8 @@ function AccountPlugin(schema: MagicSchema) {
         instance.set({ utm: rawData.utm })
     ));
 
-    schema.plugin(ProfileHuman);
-    schema.plugin(AccountWithConfirmation);
+    schema.plugin<IProfileHumanOptions>(ProfileHuman, { validateEmail: true });
+    schema.plugin(AccountWithConfirmation, {});
 
     schema.loadClass(Account, false);
     schema.loadClass(AccountController, false);

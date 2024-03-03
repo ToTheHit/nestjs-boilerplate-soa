@@ -1,17 +1,18 @@
+import MagicSchema from '@models/MagicSchema';
 import type {
     TPublicInterface,
-    IOptions as IOptionsPublicInterface,
+    IPublicInterfaceOptions as IOptionsPublicInterface,
     TPublicInterfaceStatic
 } from './PublicInterface';
 import PublicInterface from './PublicInterface';
 import CheckAccessRights, {
     TCheckAccessRights,
-    IOptions as IOptionsCheckAccessRights,
+    ICheckAccessRightsOptions as IOptionsCheckAccessRights,
     TCheckAccessRightsStatic
 } from './CheckAccessRights';
 
-export type IOptions = IOptionsPublicInterface & IOptionsCheckAccessRights;
-function PublicObject(schema, options: IOptions) {
+export type PublicObjectOptions = IOptionsPublicInterface & IOptionsCheckAccessRights;
+function PublicObject(schema: MagicSchema, options: PublicObjectOptions) {
     schema.plugin(PublicInterface, options);
     schema.plugin(CheckAccessRights, options);
 }

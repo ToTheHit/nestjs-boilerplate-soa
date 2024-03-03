@@ -24,7 +24,9 @@ import {
     differenceWith,
     without,
     isFunction,
-    merge
+    merge,
+    filter,
+    keyBy
 } from 'lodash';
 import MagicSchema from '@models/MagicSchema';
 
@@ -172,6 +174,8 @@ export {
     isFunction,
     merge,
     chunkify,
+    filter,
+    keyBy,
     getObjectKeysWithValuesByObject,
     getObjectsDiff,
     compareValues

@@ -1,7 +1,8 @@
+import { AccessDenied } from '@lib/errors';
+import { reduceToObject } from '@lib/utils/fn';
+import { ACCESS, TMethod } from '@dbLib/constants';
+import { IGetterQuery } from '@lib/interface';
 import memo from '../../../../lib/utils/memo';
-import { AccessDenied } from '../../../../lib/errors';
-import { reduceToObject } from '../../../../lib/utils/fn';
-import { ACCESS, TMethod } from '../../../lib/constants';
 import MagicSchema, { TMagicSchema, TMagicSchemaStatic, TObjectId } from '../../MagicSchema';
 import isDeleted from '../../../lib/isDeleted';
 import EmployeeRelatedFields from '../EmployeeRelatedFields';
@@ -9,7 +10,6 @@ import MagicModel, { TMagicModel } from '../../MagicModel';
 
 import { TPublicInterfaceStatic } from './PublicInterface';
 import { TMagicObject } from '../MagicObject';
-import { IGetterQuery } from '../../../../lib/interface';
 
 const defaults = Symbol('defaults');
 
@@ -258,10 +258,10 @@ async function getAccessRightsDefaults(profile: any, rightsBuilder) {
     );
 }
 
-export interface IOptions {
+export interface ICheckAccessRightsOptions {
   getPermittedProfiles?: () => Promise<any>;
   accessChecker?: (employee: any, rightsObject: any, method: string) => Promise<boolean>;
-  queryModifier?: (employee: any, rightsObject: any, baseObject: any) => any;
+  queryModifier?: (employee: any, rightsObject: any, method: TMethod, baseObject: any) => any;
   getAccessRights?: () => any;
   rightsBuilder?: (result, rights) => any;
   fieldALLOWED?: {
@@ -273,7 +273,7 @@ export interface IOptions {
   targetProfile?: 'employee' | 'user';
   checkAccessToCreate?: boolean;
 }
-function CheckAccessRights(schema, options: IOptions = {}) {
+function CheckAccessRights(schema: MagicSchema, options: ICheckAccessRightsOptions) {
     const {
         getPermittedProfiles = async () => [],
         accessChecker = async (employee, rightsObject, method) => true,
@@ -336,11 +336,11 @@ function CheckAccessRights(schema, options: IOptions = {}) {
     schema.loadClass(CheckAccessRightsClass);
 
     schema.onModelEvent('instance-validate', (profile, instance) => {
-        if (instance.isNewObject()) {
-            return checkAccessToCreate ? profile.checkAccessRights(instance, 'create') : null;
-        }
-
-        return profile.checkAccessRights(instance, 'update');
+        // if (instance.isNewObject()) {
+        //     return checkAccessToCreate ? profile.checkAccessRights(instance, 'create') : null;
+        // }
+        //
+        // return profile.checkAccessRights(instance, 'update');
     });
 }
 

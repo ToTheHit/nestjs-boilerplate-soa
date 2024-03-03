@@ -1,5 +1,5 @@
 import MagicSchema from '@models/MagicSchema';
-import MagicObject from '@plugins/MagicObject';
+import MagicObject, { IMagicObjectOptions } from '@plugins/MagicObject';
 import MagicModel from '@models/MagicModel';
 import { formatDateTime } from '@lib/utils/daytime';
 import { TUser } from './user';
@@ -76,7 +76,7 @@ class LoginClass extends MagicModel {
     }
 }
 
-LoginSchema.plugin(MagicObject);
+LoginSchema.plugin<IMagicObjectOptions>(MagicObject, {});
 LoginSchema.loadClass(LoginClass);
 
 const Login = LoginSchema.model('login', 'logins');

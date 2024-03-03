@@ -11,7 +11,11 @@ class ProfileHumanClass extends mongoose.Model<ProfileHumanClass> {
         );
     }
 }
-function ProfileHuman(schema: TMagicSchema, options = {}) {
+
+export interface IProfileHumanOptions {
+    validateEmail: boolean
+}
+function ProfileHuman(schema: TMagicSchema, options: IProfileHumanOptions) {
     Object.assign(options, { validateEmail: true });
 
     schema.plugin(ProfilePlugin, options);

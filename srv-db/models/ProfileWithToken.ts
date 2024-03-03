@@ -61,11 +61,11 @@ class ProfileWithTokenClass extends MagicModel {
         await this.save();
     }
 }
-interface IOptions {
+export interface IProfileWithTokenOptions {
     requestQuotaInterval?: number | null;
     requestQuotaNumber?: number | null;
 }
-const ProfileWithToken = (schema: MagicSchema, options: IOptions = {}) => {
+const ProfileWithToken = (schema: MagicSchema, options: IProfileWithTokenOptions = {}) => {
     const {
         requestQuotaInterval = null,
         requestQuotaNumber = null
