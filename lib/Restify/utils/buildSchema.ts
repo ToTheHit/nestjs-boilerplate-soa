@@ -14,9 +14,11 @@ const buildSchema = (Model, method) => {
     const schema = new MagicSchema({}, { _id: false, id: false });
 
     Model.schema.eachPath((fieldName, field) => {
-        if (!checkSecureField(field.options, 'private', method) &&
+        if (
+            !checkSecureField(field.options, 'private', method) &&
             !checkSecureField(field.options, 'protected', method) &&
-            fieldName !== '__v') {
+            fieldName !== '__v'
+        ) {
             schema.add({
                 [fieldName]: {
                     ...field.options,

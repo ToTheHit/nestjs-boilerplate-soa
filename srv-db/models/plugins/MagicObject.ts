@@ -259,12 +259,13 @@ const MagicObject = (schema: MagicSchema, options: IOptions = {}) => {
         const time = Date.now();
 
         if (!instance.isNewObject()) {
+            // eslint-disable-next-line no-param-reassign
             instance.__rev += 1;
             instance.set({ _updatedOn: time });
-            instance.addAffectedField(...this.modifiedPaths());
+            instance.addAffectedField(...instance.modifiedPaths());
         } else {
             instance.set({
-                _createdOn: this._createdOn || time,
+                _createdOn: instance._createdOn || time,
                 _updatedOn: time + 1
             });
         }

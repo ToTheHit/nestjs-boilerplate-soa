@@ -1,60 +1,82 @@
-export default Model => {
-    const typeSchema = Array.isArray(Model) ? 'array' : 'object';
-    const schemaModel = Array.isArray(Model) ? Model[0]?.schema?.tree : Model?.schema?.tree;
-    const properties = {};
+import { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
+import MagicModel from '@models/MagicModel';
+import MagicSchema from '@models/MagicSchema';
+import { SchemaType, Schema } from 'mongoose';
 
-    Object.keys(schemaModel).forEach(key => {
-        if (!schemaModel[key]?.private) {
-            let typeProp = schemaModel[key]?.type;
-            let defaultProp = schemaModel[key]?.default;
+type Extra = {
+    enumValues?: any[]
+}
+type TRequired = {
+    required?: boolean
+}
 
-            if ((typeof Model[key]?.type === 'function' || Model[key]?.type === undefined) &&
-                !Array.isArray(typeProp)) {
-                typeProp = schemaModel[key]?.type?.name;
-            }
+const getSchema = (MagicData: MagicSchema | MagicModel | Schema): { [key: string]: SchemaType } => {
+    if (MagicData instanceof MagicSchema || MagicData instanceof Schema) {
+        return MagicData.paths;
+    }
 
-            if (Array.isArray(typeProp)) {
-                if (schemaModel[key]?.type[0]?.obj) {
-                    typeProp = {};
-                    const temp = schemaModel[key]?.type[0]?.obj;
-
-                    Object.keys(temp).forEach(t => {
-                        const tempType = temp[t]?.$type || temp[t]?.type;
-
-                        typeProp[t] = {
-                            type: typeof tempType === 'function' ? tempType?.name : tempType,
-                            description: temp[t]?.description,
-                            default: temp[t]?.default
-                        };
-                    });
-                } else if (Array.isArray(schemaModel[key]?.type)) {
-                    const tempType = typeof schemaModel[key]?.type[0]?.type === 'function'
-                        ? schemaModel[key]?.type[0]?.type?.name : schemaModel[key]?.type[0]?.type;
-
-                    typeProp = {
-                        type: tempType,
-                        description: schemaModel[key]?.type[0]?.description,
-                        default: schemaModel[key]?.type[0]?.default
-                    };
-                }
-            }
-
-            if (typeof defaultProp === 'function' && !Array.isArray(defaultProp)) {
-                defaultProp = schemaModel[key]?.default?.name;
-            }
-
-            // if (Array.isArray(defaultProp)) {
-            // defaultProp = schemaModel[key]?.default?.name;
-            //   console.log('defaultProp #s2>>>', defaultProp, schemaModel[key]?.default, key);
-            // }
-
-            properties[key] = {
-                type: typeProp || 'string',
-                default: defaultProp || null,
-                description: schemaModel[key]?.description || ''
-            };
-        }
-    });
-
-    return { type: typeSchema, properties };
+    return MagicData.schema.paths;
 };
+
+const prepareSchema = (MagicData: MagicSchema | MagicModel | Schema): SchemaObject => {
+    const schemaModel = Array.isArray(MagicData) ? getSchema(MagicData[0]) : getSchema(MagicData);
+
+    const properties = {};
+    const required: string[] = [];
+
+    for (const key in schemaModel) {
+        if (schemaModel[key].options.private) {
+            // eslint-disable-next-line no-continue
+            continue;
+        }
+        // eslint-disable-next-line no-use-before-define
+        properties[key] = prepareField(schemaModel[key]);
+        if (properties[key].required === true) {
+            required.push(key);
+        }
+    }
+
+    return {
+        type: Array.isArray(MagicData) ? 'array' : 'object',
+        properties,
+        required
+    };
+};
+
+const prepareField = (field: SchemaType & Extra): SchemaObject => {
+    const result: SchemaObject & TRequired = {
+        type: field.instance?.toLowerCase(),
+        enum: field.enumValues,
+        default: field.options.default,
+        description: field.options.description,
+        maxLength: field.options.maxLength || field.options.maxlength,
+        minLength: field.options.minLength || field.options.minlength,
+        maximum: field.options.max,
+        minimum: field.options.min,
+        readOnly: field.options.protected,
+        required: field.options.required
+    };
+
+    if (field instanceof MagicSchema.Types.Array) {
+        // Примитивы
+        if (field.caster.instance) {
+            result.items = {
+                type: field.caster.instance,
+                enum: field.caster.options.enum || field.options.enum
+            };
+        } else {
+            result.items = prepareSchema(field.caster.schema);
+            result.items.enum = field.options.enum;
+        }
+    } else if (field.instance === 'Embedded') {
+        Object.assign(result, prepareSchema(field.schema));
+    }
+
+    if (typeof result.default === 'function') {
+        result.default = null;
+    }
+
+    return result;
+};
+
+export default prepareSchema;

@@ -8,7 +8,9 @@ import AuthEvents from '@srvAuth/events';
 
 const fn = async () => {
     const moduleRef = await Test.createTestingModule({
-        imports: [AuthModule(true)]
+        imports: [
+            AuthModule(true)
+        ]
     })
         .compile();
 

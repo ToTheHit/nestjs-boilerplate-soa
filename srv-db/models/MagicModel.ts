@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 class MagicModel extends mongoose.Model {
-    static get useBaseObject(): null | 'model' | 'object' {
+    static useBaseObject(): null | 'model' | 'object' {
         return null;
     }
 }

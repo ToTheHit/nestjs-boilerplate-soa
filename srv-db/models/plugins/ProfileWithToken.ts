@@ -91,8 +91,7 @@ const ProfileWithToken = (schema: MagicSchema, options: IOptions = {}) => {
         blockReason: {
             type: String,
             description: 'Причина блокировки доступа к системе',
-            default: '',
-            search: { index: 'filter' }
+            default: null
         },
         _blockedBy: {
             type: MagicSchema.Types.ObjectId,
