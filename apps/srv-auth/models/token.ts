@@ -1,5 +1,5 @@
 import MagicSchema from '@models/MagicSchema';
-import AccountObject from '@plugins/AccountObject';
+import AccountObject, { IAccountObjectOptions } from '@plugins/AccountObject';
 
 import { randKey as generateToken } from '@lib/utils/token';
 import MagicModel from '@models/MagicModel';
@@ -57,7 +57,7 @@ class TokenClass extends MagicModel {
     }
 }
 
-TokenSchema.plugin(AccountObject);
+TokenSchema.plugin<IAccountObjectOptions>(AccountObject, {});
 
 TokenSchema.loadClass(TokenClass, false);
 

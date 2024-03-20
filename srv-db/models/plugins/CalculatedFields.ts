@@ -97,7 +97,7 @@ const cacheSubObjectsCalc = async (profile, store, answer, objectsList, handler)
     store.set(profile, { ...cached, ...answer });
 };
 
-interface IOptions {
+export interface ICalculatedFieldsOptions {
   fields: {
     [key: string]: {
       type: any;
@@ -115,7 +115,7 @@ interface IOptions {
   inner?: boolean;
   firstPlugin: boolean;
 }
-const CalculatedFields = (schema: TMagicSchema, options: IOptions) => {
+const CalculatedFields = (schema: TMagicSchema, options: ICalculatedFieldsOptions) => {
     schema[calcCache] = new WeakMap();
 
     if (!schema[fieldsHandler]) {

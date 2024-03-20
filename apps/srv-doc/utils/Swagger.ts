@@ -9,6 +9,10 @@ import {
 } from 'lodash';
 import * as pathToRegexp from 'path-to-regexp';
 import { SwaggerModule } from '@nestjs/swagger';
+import { SwaggerTransformer } from '@nestjs/swagger/dist/swagger-transformer';
+import {
+    filter, groupBy, keyBy, mapValues, omit
+} from '@lib/utils/fn';
 
 // @ts-ignore
 class SwaggerExplorerCustom extends SwaggerExplorer {
@@ -35,11 +39,53 @@ class SwaggerExplorerCustom extends SwaggerExplorer {
     }
 }
 
+class SwaggerTransformerCustom extends SwaggerTransformer {
+    public normalizePaths(
+        denormalizedDoc: (Partial<OpenAPIObject> & Record<'root', any>)[]
+    ): Record<'paths', OpenAPIObject['paths']> {
+        const roots = filter(denormalizedDoc, r => r.root);
+        const groupedByPath = groupBy(
+            roots,
+            ({ root }: Record<'root', any>) => root.path
+        );
+
+        const paths = mapValues(groupedByPath, routes => {
+            const methods = {};
+
+            routes.forEach((route, index) => {
+                if (methods[route.root.method]) {
+                    routes.splice(index, 1);
+                } else {
+                    methods[route.root.method] = true;
+                }
+            });
+
+            const keyByMethod = keyBy(
+                routes,
+                ({ root }: Record<'root', any>) => root.method
+            );
+
+            return mapValues(keyByMethod, (route: any) => {
+                return {
+                    ...omit(route.root, ['method', 'path']),
+                    ...omit(route, 'root')
+                };
+            });
+        });
+
+        return {
+            paths
+        };
+    }
+}
+
 class SwaggerScannerCustom extends SwaggerScanner {
     constructor() {
         super();
         // @ts-ignore
         this.explorer = new SwaggerExplorerCustom(this.schemaObjectFactory);
+        // @ts-ignore
+        this.transformer = new SwaggerTransformerCustom();
     }
 }
 

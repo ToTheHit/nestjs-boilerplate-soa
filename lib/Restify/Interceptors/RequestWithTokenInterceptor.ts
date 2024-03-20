@@ -50,7 +50,8 @@ class RequestWithTokenInterceptor<T> extends BasicRequestInterceptor<T> {
     public checkRequestQuotaValues: boolean;
 
     async intercept(_context: ExecutionContext, next: CallHandler) {
-        await super.intercept(_context, next);
+        const interceptorsContext = await super.intercept(_context, next);
+
         logger.debug('>>> BEFORE RequestWithTokenInterceptor');
 
         const req = _context.switchToHttp().getRequest();
@@ -68,7 +69,7 @@ class RequestWithTokenInterceptor<T> extends BasicRequestInterceptor<T> {
             }
         }
 
-        return next.handle().pipe(data => {
+        return interceptorsContext.pipe(data => {
             logger.debug('### AFTER RequestWithTokenInterceptor');
 
             return data;

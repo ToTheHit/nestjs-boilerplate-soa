@@ -57,12 +57,12 @@ class WithPhoneClass extends mongoose.Model<WithPhoneClass> {
         return phone.number;
     }
 }
-interface IOptions {
+export interface IWithPhoneOptions {
     haveAdditional?: boolean;
     isPhoneProtected?: boolean;
     trim?: boolean
 }
-const WithPhone = (schema: MagicSchema, options: IOptions = {}) => {
+const WithPhone = (schema: MagicSchema, options: IWithPhoneOptions = {}) => {
     const {
         haveAdditional = true,
         isPhoneProtected = false,

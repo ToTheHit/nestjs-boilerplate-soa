@@ -22,7 +22,7 @@ class EmailController extends MagicModel {
     }
 }
 
-interface IOptions {
+export interface IWithEmailOptions {
     validateEmail?: boolean;
     needConfirmation?: boolean;
     isProtected?: boolean;
@@ -32,7 +32,7 @@ interface IOptions {
     haveController?: boolean;
     haveAdditional?: boolean;
 }
-const WithEmail = (schema: TMagicSchema, options: IOptions = {}) => {
+const WithEmail = (schema: TMagicSchema, options: IWithEmailOptions = {}) => {
     const {
         validateEmail = true,
         needConfirmation = false,

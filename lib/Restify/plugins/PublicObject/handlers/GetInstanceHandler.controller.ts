@@ -11,6 +11,7 @@ import getInstanceInfo from '@restify/utils/getInstanceInfo';
 import buildSchema from '@restify/utils/buildSchema';
 import { ApiTags } from '@nestjs/swagger';
 import MagicModel from '@models/MagicModel';
+import autoDocs from '@srvDoc/decorators/autoDoc';
 import GetInstanceInterceptor from '../../../Interceptors/getInstanceObject';
 
 export default (Model: MagicModel) => {
@@ -18,6 +19,10 @@ export default (Model: MagicModel) => {
     @ApiTags(Model.getPublicName())
     class PublicObjectGetInstance {
         @Get(':_id')
+        @autoDocs({
+            apiOperation: { summary: 'Get instance' },
+            apiOkResponse: { Model }
+        })
         @UseInterceptors(GetInstanceInterceptor(Model, true))
         @RequestValidatorDecorator(
             {
@@ -50,20 +55,11 @@ export default (Model: MagicModel) => {
             return getInstanceInfo(req);
         }
 
-        @Post(':_id')
-        @UseInterceptors(GetInstanceInterceptor(Model, true))
-        @RequestValidatorDecorator({}, { additionalValidation: buildSchema(Model, 'create') })
-        async createHandler(
-            @Req() req,
-            @Body() body,
-            @Param('_id') _id
-        ) {
-            const answer = await Model.createObjectsHandler(req.profile, body, req.baseObject);
-
-            return Model.getObjectsInfoPublic(req.profile, answer, req.baseObject);
-        }
-
         @Patch(':_id')
+        @autoDocs({
+            apiOperation: { summary: 'Update instance' },
+            apiOkResponse: { Model }
+        })
         @UseInterceptors(GetInstanceInterceptor(Model, true))
         @RequestValidatorDecorator({}, { additionalValidation: buildSchema(Model, 'update') })
         async updateHandler(
@@ -77,6 +73,10 @@ export default (Model: MagicModel) => {
         }
 
         @Delete(':_id')
+        @autoDocs({
+            apiOperation: { summary: 'Delete instance' },
+            apiOkResponse: { Model }
+        })
         @UseInterceptors(GetInstanceInterceptor(Model, true))
         deleteHandler(
             @Req() req,

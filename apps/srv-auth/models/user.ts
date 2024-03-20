@@ -1,8 +1,8 @@
 import AccountPlugin, { TAccountPlugin, TAccountPluginStatic } from '@plugins/AccountPlugin';
 import ProfileWithToken, { TProfileWithToken, TProfileWithTokenStatic } from '@models/ProfileWithToken';
-import WithEmail, { TWithEmail, TWithEmailStatic } from '@plugins/WithEmail';
+import WithEmail, { IWithEmailOptions, TWithEmail, TWithEmailStatic } from '@plugins/WithEmail';
 import PublicObject, {
-    IOptions, TPublicObject, TPublicObjectStatic
+    PublicObjectOptions, TPublicObject, TPublicObjectStatic
 } from '@plugins/PublicObject';
 import ProfileWithAccess, {
     TProfileWithAccess,
@@ -96,6 +96,20 @@ const UserSchema = new MagicSchema(
             type: Number,
             description: 'Дата создания',
             default: null
+        },
+        _catalogId: {
+            type: MagicSchema.Types.ObjectId,
+            description: 'Идентификатор корневого каталога',
+            default: null,
+            protected: true
+        },
+        _fsId: {
+            type: MagicSchema.Types.ObjectId,
+            description: 'ID личного файлового хранилища',
+            default: null,
+            ref: 'fs',
+            protected: true,
+            private: true
         }
     },
     {
@@ -104,7 +118,7 @@ const UserSchema = new MagicSchema(
     }
 );
 
-const PublicObjectOptions: IOptions = {
+const PublicObjectOptions: PublicObjectOptions = {
     defaultSortOrder: 1,
     API_NAME: 'Пользователь',
     targetProfile: 'user',
@@ -145,8 +159,8 @@ const PublicObjectOptions: IOptions = {
     defaultSortField: '_createdOn'
 };
 
-UserSchema.plugin(ProfileWithAccess);
-UserSchema.plugin(WithEmail);
+UserSchema.plugin(ProfileWithAccess, {});
+UserSchema.plugin<IWithEmailOptions>(WithEmail, {});
 
 UserSchema.plugin(ProfileWithToken, {
     requestQuotaInterval: 900,
@@ -154,9 +168,15 @@ UserSchema.plugin(ProfileWithToken, {
 });
 
 UserSchema.plugin(PublicObject, PublicObjectOptions);
-UserSchema.plugin(AccountPlugin);
+UserSchema.plugin(AccountPlugin, {});
 
 UserSchema.loadClass(UserClass, false);
+
+UserSchema.onModelEvent('instance-post-create', async (profile, instance) => {
+    await emitBgEvent.sendEvent('createUserFs', {
+        _profileId: instance._id
+    }, 'media-events');
+});
 
 export default UserSchema.model('user', 'users');
 

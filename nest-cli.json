@@ -23,6 +23,12 @@
       "root": "apps/srv-doc",
       "entryFile": "service",
       "sourceRoot": "apps/srv-doc"
+    },
+    "media": {
+      "type": "application",
+      "root": "apps/srv-media",
+      "entryFile": "service",
+      "sourceRoot": "apps/srv-media"
     }
   }
 }

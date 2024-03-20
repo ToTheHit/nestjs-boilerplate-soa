@@ -40,8 +40,7 @@ class AccountWithConfirmationClass extends MagicModel {
         this.set({
             confirmed: true,
             emailConfirmedStatus,
-            email,
-            createdAt: new Date()
+            email
         });
 
         await this.save();
@@ -49,17 +48,17 @@ class AccountWithConfirmationClass extends MagicModel {
         const promises = [
             emitBgEvent.clearDelayedEvent(this._id, 'emailNeedConfirmAccount'),
             this.clearDelayedSystemEvent('noEmailConfirm'),
-            this.systemEvent('emailConfirmed', {
-                oldStatus,
-                newStatus: emailConfirmedStatus
-            }),
+            //     this.systemEvent('emailConfirmed', {
+            //         oldStatus,
+            //         newStatus: emailConfirmedStatus
+            //     }),
             (<TMagicSchemaStatic> this.model()).emitModelEvent('instance-post-confirm-email', this),
             this.model().dbcaUpdate(this._id, ['email', 'emailConfirmedStatus'])
         ];
 
-        if (sendNotif) {
-            promises.push(emitBgEvent.sendEvent('registration', { toId: this._id }, 'auth-events'));
-        }
+        // if (sendNotif) {
+        //     promises.push(emitBgEvent.sendEvent('registration', { toId: this._id }, 'auth-events'));
+        // }
         await Promise.all(promises);
     }
 

@@ -4,7 +4,6 @@ import { port } from 'config';
 import { RabbitMQInit } from '@db/RabbitMQ/MQListener';
 import { redisInit } from '@db/Redis/Redis';
 import initGlobalFilters from '@restify/AllExceptionsFilter';
-
 import AppModule from './module';
 
 async function srv() {

@@ -78,7 +78,13 @@ export default () => {
             }
         )
         async signUpHandler(@Req() req, @Res({ passthrough: true }) res, @Body() body) {
-            return initSession(req, res, req => User.signUpLocal(body, req.requestInfo), false, true);
+            return initSession(
+                req,
+                res,
+                req => User.signUpLocal(body, req.requestInfo),
+                false,
+                true
+            );
         }
 
         @Post('/login')

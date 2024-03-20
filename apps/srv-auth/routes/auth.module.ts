@@ -1,7 +1,7 @@
 import { rest } from 'config';
 import { RouterModule } from '@nestjs/core';
-
 import { Module } from '@nestjs/common';
+
 import AuthController from './auth.controller';
 import User from '../models/user';
 

@@ -498,15 +498,15 @@ class PublicInterfaceController extends PublicInterfaceObject {
     }
 
     static async getObjectsListByIds(
-        profile: any,
-        ids = [],
+        profile: TUser,
+        ids: TObjectId[] | string[] = [],
         request = {} as IRequest | Record<string, never>,
-        queryModif = {},
+        queryModif: Record<string, any> = {},
         baseObject = null,
         sort = false,
         plain = true,
         ignoreDeletion = false,
-        method
+        method: string
     ) {
         return !Array.isArray(ids) || ids.length === 0
             ? []
@@ -805,7 +805,7 @@ class PublicInterfaceController extends PublicInterfaceObject {
         return instance;
     }
 
-    public static async createObject(profile, rawData = {}, baseObject = null) {
+    public static async createObject<T>(profile, rawData = {}, baseObject = null): Promise<T> {
         const instance = new this();
 
         await instance.validateRawData(profile, rawData, 'create', baseObject);
@@ -979,11 +979,11 @@ const getSortFieldsFromOtherCollections = fieldsObject => {
     // return this.schema[sortFieldsFromOtherCollections] || null;
 };
 
-export interface IOptions {
+export interface IPublicInterfaceOptions {
   disableGlobalId?: boolean;
   _idField?: string;
-  defaultSortOrder: 1 | -1;
-  API_PREFIX: string | null;
+  defaultSortOrder?: 1 | -1;
+  API_PREFIX?: string | null;
   API_NAME: string;
   sortFieldVariants?: string[];
   defaultSortField?: string;
@@ -992,7 +992,7 @@ export interface IOptions {
   allowedAttachedFilesType?: string[];
 }
 
-const PublicInterface = (schema: mongoose.Schema, options: IOptions) => {
+const PublicInterface = (schema: mongoose.Schema, options: IPublicInterfaceOptions) => {
     const defaults = {
         disableGlobalId: false,
         _idField: '_id',

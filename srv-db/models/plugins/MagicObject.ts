@@ -4,7 +4,7 @@ import MagicSchema, { TMagicSchema, TMagicSchemaStatic } from '../MagicSchema';
 import emitBgEvent from '../../lib/emitBgEvent';
 import { redisClient } from '../../db/Redis/Redis';
 import { TPublicInterfaceStatic } from './PublicObject/PublicInterface';
-import { TMagicModel } from '../MagicModel';
+import MagicModel, { TMagicModel } from '../MagicModel';
 
 const _affectedFields = new WeakMap();
 const SYS_KEYS = 'System:keys_ids';
@@ -31,7 +31,7 @@ async function dbCollectionAffectedEmitter(
     }
 }
 
-class MagicObjectClass extends mongoose.Model {
+class MagicObjectClass extends MagicModel {
     static linkKey(obj) {
         return `${obj._id}_${this.collection.name}`;
     }
@@ -198,7 +198,7 @@ class MagicObjectClass extends mongoose.Model {
     }
 }
 
-interface IOptions {
+export interface IMagicObjectOptions {
   emitDbca?: Array<'create' | 'update' | 'delete'>;
   hideOnRemove?: boolean;
 }
@@ -206,7 +206,7 @@ interface IRawData {
   opId?: string;
 }
 
-const MagicObject = (schema: MagicSchema, options: IOptions = {}) => {
+const MagicObject = (schema: MagicSchema, options: IMagicObjectOptions = {}) => {
     const { emitDbca = ['create', 'update', 'delete'], hideOnRemove = true } = options;
 
     schema.loadClass(MagicObjectClass, false);

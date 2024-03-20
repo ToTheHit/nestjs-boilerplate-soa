@@ -1,6 +1,8 @@
 // eslint-disable-next-line max-classes-per-file
-import mongoose, { Schema, Types } from 'mongoose';
-import { ForbiddenError, NotFoundError } from '../../lib/errors';
+import mongoose, {
+    Schema, SchemaDefinition, Types
+} from 'mongoose';
+import { ForbiddenError, NotFoundError } from '@lib/errors';
 import { TMagicModel } from './MagicModel';
 
 const _plugins = new WeakMap();
@@ -22,7 +24,7 @@ mongoose.Schema.Types.Boolean.convertToFalse.add('false');
 mongoose.Schema.Types.Boolean.convertToFalse.add('0');
 mongoose.Schema.Types.Boolean.convertToFalse.add('null');
 
-class ObjectId extends Types.ObjectId {
+class ObjectId extends mongoose.Types.ObjectId {
     // eslint-disable-next-line no-shadow
     static isValidStrict(_id: Types.ObjectId | string): boolean {
         return mongoose.isObjectIdOrHexString(_id);
@@ -175,8 +177,8 @@ class MagicSchema extends Schema {
 
     tree: any;
 
-    constructor(obj, options = {}) {
-        super(obj, {
+    constructor(definition: SchemaDefinition, options = {}) {
+        super(definition, {
             minimize: false, _id: true, id: false, ...options
         });
 
@@ -187,7 +189,9 @@ class MagicSchema extends Schema {
 
         this.Model = null;
 
-        this.post('init', doc => doc.isNewObject(false));
+        this.post('init', doc => {
+            (<MetaData><unknown> doc).isNewObject(false);
+        });
 
         _plugins.set(this, []);
         _pluginsConnected.set(this, []);
@@ -208,7 +212,7 @@ class MagicSchema extends Schema {
         return connectedPlugins.includes(pluginName);
     }
 
-    plugin(fn, options = {}) {
+    plugin<T>(fn: (ParentClass, options: any) => any, options: T) {
         const connectedPlugins = _pluginsConnected.get(this);
         const firstPlugin = !connectedPlugins.includes(fn.name);
         const plugins = _plugins.get(this);
@@ -264,7 +268,7 @@ class MagicSchema extends Schema {
         throw new NotFoundError(`Model for collection ${collectionName} not found`);
     }
 
-    model(modelName, collectionName) {
+    model(modelName: string, collectionName: string) {
         const Model = mongoose.model(modelName, this, collectionName);
 
         this.Model = Model;
@@ -272,13 +276,13 @@ class MagicSchema extends Schema {
         return modelInit.call(this, Model);
     }
 
-    incomeDataModifiers(action) {
+    incomeDataModifiers(action: string) {
         const idm = _dataModif.get(this);
 
         return idm[action] || [];
     }
 
-    modifyIncomeData(actionType, modifier) {
+    modifyIncomeData(actionType: string | string[], modifier: Record<string, any>) {
         const actionList = Array.isArray(actionType) ? actionType : [actionType];
 
         const idm = _dataModif.get(this);
@@ -304,7 +308,7 @@ class MagicSchema extends Schema {
         return eventsHandlers[action] || [];
     }
 
-    onModelEvent(action, handler) {
+    onModelEvent(action: string, handler: (...args: any[]) => (void | Promise<void>)) {
         const eventsHandlers = _events.get(this);
 
         if (!Array.isArray(eventsHandlers[action])) {
