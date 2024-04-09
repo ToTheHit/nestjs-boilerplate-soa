@@ -10,7 +10,9 @@ describe('rootFsAndCatalog', () => {
     });
 
     it('Should create default fileStorage and catalog after registration', async () => {
-        const fileStoragesCount = await FileStorage.countDocuments();
+        const fileStoragesCount = await FileStorage.countDocuments({
+            _userId: userData._id
+        });
 
         fileStoragesCount.should.be.equal(1);
         const CatalogsCount = await Catalog.countDocuments();
